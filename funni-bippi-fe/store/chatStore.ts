@@ -18,6 +18,7 @@ interface ChatStore {
   setFilter: (f: Filter) => void
   setRoomId: (id: string | null) => void
   setSessionId: (id: string | null) => void
+  reactToMessage: (id: string, emoji: string) => void
   resetChat: () => void
 }
 
@@ -36,5 +37,8 @@ export const useChatStore = create<ChatStore>()((set) => ({
   setFilter: (filter) => set({ filter }),
   setRoomId: (roomId) => set({ roomId }),
   setSessionId: (sessionId) => set({ sessionId }),
+  reactToMessage: (id, emoji) => set((s) => ({
+    messages: s.messages.map(m => m.id === id ? { ...m, reaction: m.reaction === emoji ? undefined : emoji } : m),
+  })),
   resetChat: () => set({ stranger: null, messages: [], typing: false, roomId: null }),
 }))
