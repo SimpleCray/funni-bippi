@@ -26,13 +26,14 @@ interface ChatScreenProps {
   onReport: () => void
   onTogglePanel: () => void
   onImageUpload?: (file: File) => void
+  isUploading?: boolean
 }
 
 export function ChatScreen({
   stranger, messages, typing, icebreakers, rightOpen,
   nav, setNav, accent, setAccent, theme, toggleTheme,
   openSettings, onLogo, onSend, onTyping, onReact,
-  onNext, onReport, onTogglePanel, onImageUpload,
+  onNext, onReport, onTogglePanel, onImageUpload, isUploading,
 }: ChatScreenProps) {
   return (
     <div className="layout">
@@ -47,7 +48,7 @@ export function ChatScreen({
         nav={nav} setNav={setNav}
         onSend={onSend} onTyping={onTyping} onReact={onReact}
         onNext={onNext} onTogglePanel={onTogglePanel}
-        onImageUpload={onImageUpload}
+        onImageUpload={onImageUpload} isUploading={isUploading}
       />
       {stranger && (
         <ProfilePanel

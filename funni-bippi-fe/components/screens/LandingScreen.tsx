@@ -14,11 +14,12 @@ interface LandingScreenProps {
   setAccent: (a: AccentColor) => void
   onStart: () => void
   openSettings: () => void
+  disabled?: boolean
 }
 
 const FILTER_ICONS = { everyone: IcGlobe, male: IcMars, female: IcVenus }
 
-export function LandingScreen({ theme, toggleTheme, accent, setAccent, onStart, openSettings }: LandingScreenProps) {
+export function LandingScreen({ theme, toggleTheme, accent, setAccent, onStart, openSettings, disabled }: LandingScreenProps) {
   const { filter, setFilter } = useChatStore()
 
   return (
@@ -67,8 +68,8 @@ export function LandingScreen({ theme, toggleTheme, accent, setAccent, onStart, 
         </p>
 
         <div className="hero-cta-row">
-          <button className="btn btn-primary huge pulse-hover" onClick={onStart}>
-            Start Chatting ✨
+          <button className="btn btn-primary huge pulse-hover" onClick={onStart} disabled={disabled}>
+            {disabled ? 'Connecting…' : 'Start Chatting ✨'}
           </button>
           <div className="filter-label">I&apos;d like to chat with</div>
           <div className="seg">

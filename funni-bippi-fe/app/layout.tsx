@@ -7,6 +7,7 @@ import '@fontsource/poppins/700.css'
 import '@fontsource/poppins/800.css'
 import '@fontsource/dm-sans/400.css'
 import '@fontsource/dm-sans/500.css'
+import { Providers } from '@/components/Providers'
 
 export const metadata: Metadata = {
   title: 'Funni Bippi — World without strangers.',
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body style={{ margin: 0, height: '100dvh', overflow: 'hidden' }}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

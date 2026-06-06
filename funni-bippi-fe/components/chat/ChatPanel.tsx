@@ -31,11 +31,12 @@ interface ChatPanelProps {
   onNext: () => void
   onTogglePanel: () => void
   onImageUpload?: (file: File) => void
+  isUploading?: boolean
 }
 
 export function ChatPanel({
   stranger, messages, typing, nav, setNav,
-  onSend, onTyping, onReact, onNext, onTogglePanel, onImageUpload,
+  onSend, onTyping, onReact, onNext, onTogglePanel, onImageUpload, isUploading,
 }: ChatPanelProps) {
   const msgsRef = useRef<HTMLDivElement>(null)
 
@@ -96,7 +97,7 @@ export function ChatPanel({
             {typing && stranger && <TypingIndicator stranger={stranger} />}
           </div>
           <div className="composer">
-            <ComposerBar onSend={onSend} onTyping={onTyping} onImageUpload={onImageUpload} />
+            <ComposerBar onSend={onSend} onTyping={onTyping} onImageUpload={onImageUpload} isUploading={isUploading} />
           </div>
         </>
       )}

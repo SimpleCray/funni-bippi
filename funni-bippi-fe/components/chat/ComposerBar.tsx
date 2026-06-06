@@ -8,12 +8,13 @@ interface ComposerBarProps {
   onSend: (text: string) => void
   onTyping?: (typing: boolean) => void
   onImageUpload?: (file: File) => void
+  isUploading?: boolean
   compact?: boolean
 }
 
 const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp'
 
-export function ComposerBar({ onSend, onTyping, onImageUpload, compact = false }: ComposerBarProps) {
+export function ComposerBar({ onSend, onTyping, onImageUpload, isUploading, compact = false }: ComposerBarProps) {
   const [val, setVal] = useState('')
   const [focus, setFocus] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false)
@@ -95,10 +96,11 @@ export function ComposerBar({ onSend, onTyping, onImageUpload, compact = false }
           <button
             className="icon-btn round"
             style={{ width: 38, height: 38 }}
-            title="Attach image"
+            title={isUploading ? 'Uploading…' : 'Attach image'}
+            disabled={isUploading}
             onClick={() => fileRef.current?.click()}
           >
-            <IcClip size={20} />
+            {isUploading ? <span style={{ fontSize: 14 }}>⏳</span> : <IcClip size={20} />}
           </button>
         )}
         <input

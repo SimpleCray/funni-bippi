@@ -32,8 +32,8 @@ export default function AppShell() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const isMobile = useIsMobile()
-  const { initSession, startMatch, cancelMatch, disconnect } = useMatching()
-  const { sendMessage, sendImage, uploadImage, emitTypingDebounced, nextStranger, report } = useChat()
+  const { startMatch, cancelMatch, disconnect, isSessionReady, isSessionError } = useMatching()
+  const { sendMessage, sendImage, uploadImage, emitTypingDebounced, nextStranger, report, isUploading } = useChat()
 
   const flashToast = (icon: string, text: string) => {
     setToast({ icon, text })
@@ -44,8 +44,8 @@ export default function AppShell() {
   useSocket(flashToast)
 
   useEffect(() => {
-    initSession()
-  }, [initSession])
+    if (isSessionError) flashToast('⚠️', 'Cannot reach server. Is the BE running?')
+  }, [isSessionError])
 
   function handleStart() {
     setScreen('matching')
@@ -117,6 +117,7 @@ export default function AppShell() {
     onReport: handleReport,
     onTogglePanel: () => setRightOpen(o => !o),
     onImageUpload: handleImageUpload,
+    isUploading,
   }
 
   return (
@@ -128,6 +129,7 @@ export default function AppShell() {
           setAccent={setAccent as (a: AccentColor) => void}
           onStart={handleStart}
           openSettings={() => setSettingsOpen(true)}
+          disabled={!isSessionReady}
         />
       )}
 
