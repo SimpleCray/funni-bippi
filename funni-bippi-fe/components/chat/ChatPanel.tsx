@@ -30,9 +30,13 @@ interface ChatPanelProps {
   onReact: (id: string, emoji: string) => void
   onNext: () => void
   onTogglePanel: () => void
+  onImageUpload?: (file: File) => void
 }
 
-export function ChatPanel({ stranger, messages, typing, nav, setNav, onSend, onTyping, onReact, onNext, onTogglePanel }: ChatPanelProps) {
+export function ChatPanel({
+  stranger, messages, typing, nav, setNav,
+  onSend, onTyping, onReact, onNext, onTogglePanel, onImageUpload,
+}: ChatPanelProps) {
   const msgsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -92,7 +96,7 @@ export function ChatPanel({ stranger, messages, typing, nav, setNav, onSend, onT
             {typing && stranger && <TypingIndicator stranger={stranger} />}
           </div>
           <div className="composer">
-            <ComposerBar onSend={onSend} onTyping={onTyping} />
+            <ComposerBar onSend={onSend} onTyping={onTyping} onImageUpload={onImageUpload} />
           </div>
         </>
       )}

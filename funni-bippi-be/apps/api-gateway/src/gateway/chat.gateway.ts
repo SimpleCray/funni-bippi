@@ -101,6 +101,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.kafka.emit(KafkaTopics.CHAT_MESSAGE, {
       roomId: dto.roomId,
       fromUserId: client.data.userId,
+      fromSocketId: client.id,
       text: dto.text,
       messageId: uuid(),
       timestamp: Date.now(),
@@ -117,6 +118,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.kafka.emit(KafkaTopics.CHAT_IMAGE, {
       roomId: dto.roomId,
       fromUserId: client.data.userId,
+      fromSocketId: client.id,
       imageUrl: dto.imageUrl,
       messageId: uuid(),
       timestamp: Date.now(),
@@ -174,7 +176,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.to(sid).emit(payload.event, payload.data)
       }
     } else if (payload.type === 'emit-to-room' && payload.roomId && payload.event) {
-      this.server.to(payload.roomId).emit(payload.event, payload.data)
+      const emitter = payload.excludeSocketIds?.length
+        ? this.server.to(payload.roomId).except(payload.excludeSocketIds)
+        : this.server.to(payload.roomId)
+      emitter.emit(payload.event, payload.data)
     }
   }
 }

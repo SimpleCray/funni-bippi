@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import type { Message, Stranger } from '@/types'
 import { Avatar } from '@/components/ui/Avatar'
 import { QUICK_REACTS } from '@/lib/constants'
@@ -10,10 +11,20 @@ interface MessageBubbleProps {
   onReact: (id: string, emoji: string) => void
 }
 
+import type { Transition } from 'framer-motion'
+
+const spring: Transition = { type: 'spring', damping: 18, stiffness: 260, mass: 0.6 }
+
 export function MessageBubble({ message: m, stranger, onReact }: MessageBubbleProps) {
   const mine = m.from === 'me'
   return (
-    <div className={'row ' + (mine ? 'me' : 'them')}>
+    <motion.div
+      className={'row ' + (mine ? 'me' : 'them')}
+      initial={{ opacity: 0, y: 8, scale: 0.92 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={spring}
+      layout
+    >
       {!mine && stranger && <Avatar stranger={stranger} size={32} />}
       <div className="stack">
         <div className="react-bar">
@@ -34,6 +45,6 @@ export function MessageBubble({ message: m, stranger, onReact }: MessageBubblePr
         </div>
         <div className="ts">{m.time}</div>
       </div>
-    </div>
+    </motion.div>
   )
 }

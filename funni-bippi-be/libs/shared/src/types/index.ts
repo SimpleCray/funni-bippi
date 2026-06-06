@@ -35,6 +35,7 @@ export interface MessagePayload {
   messageId: string
   roomId: string
   fromUserId: string
+  fromSocketId?: string
   text?: string
   imageUrl?: string
   timestamp: number
@@ -52,6 +53,7 @@ export interface GatewayBroadcastPayload {
   type: 'join-room' | 'emit-to-socket' | 'emit-to-room'
   roomId?: string
   socketIds?: string[]
+  excludeSocketIds?: string[]
   event?: string
   data?: unknown
 }

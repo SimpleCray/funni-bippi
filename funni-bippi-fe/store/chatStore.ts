@@ -11,6 +11,7 @@ interface ChatStore {
   filter: Filter
   roomId: string | null
   sessionId: string | null
+  userId: string | null
   setScreen: (s: Screen) => void
   setStranger: (s: Stranger | null) => void
   addMessage: (m: Message) => void
@@ -18,6 +19,7 @@ interface ChatStore {
   setFilter: (f: Filter) => void
   setRoomId: (id: string | null) => void
   setSessionId: (id: string | null) => void
+  setUserId: (id: string | null) => void
   reactToMessage: (id: string, emoji: string) => void
   resetChat: () => void
 }
@@ -30,6 +32,7 @@ export const useChatStore = create<ChatStore>()((set) => ({
   filter: 'everyone',
   roomId: null,
   sessionId: null,
+  userId: null,
   setScreen: (screen) => set({ screen }),
   setStranger: (stranger) => set({ stranger }),
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
@@ -37,6 +40,7 @@ export const useChatStore = create<ChatStore>()((set) => ({
   setFilter: (filter) => set({ filter }),
   setRoomId: (roomId) => set({ roomId }),
   setSessionId: (sessionId) => set({ sessionId }),
+  setUserId: (userId) => set({ userId }),
   reactToMessage: (id, emoji) => set((s) => ({
     messages: s.messages.map(m => m.id === id ? { ...m, reaction: m.reaction === emoji ? undefined : emoji } : m),
   })),

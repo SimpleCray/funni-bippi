@@ -421,3 +421,32 @@ input, textarea { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* ============================================================
+   RESPONSIVE — mobile < 720px
+   ============================================================ */
+@media (max-width: 720px) {
+  /* hide desktop layout on mobile */
+  .layout > .sidebar,
+  .layout > .right { display: none !important; }
+  .layout { display: block; }
+
+  /* landing adapts */
+  .landing { padding: 20px 18px; }
+  .hero-title { font-size: clamp(36px, 10vw, 56px); }
+  .deco { display: none; }
+  .deco-bubble { display: none; }
+  .hero-sub { font-size: 14px; }
+  .landing-hero { padding: 24px 0 0; }
+
+  /* matchmaking centers */
+  .layout > .center { width: 100%; min-height: 100dvh; }
+
+  /* chat center full-width */
+  .center { border-left: none !important; }
+}
+
+@media (min-width: 721px) {
+  /* hide mobile shell on desktop */
+  .m-shell { display: none !important; }
+}

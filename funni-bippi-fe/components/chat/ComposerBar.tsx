@@ -7,14 +7,18 @@ import { EMOJI } from '@/lib/icebreakers'
 interface ComposerBarProps {
   onSend: (text: string) => void
   onTyping?: (typing: boolean) => void
+  onImageUpload?: (file: File) => void
   compact?: boolean
 }
 
-export function ComposerBar({ onSend, onTyping, compact = false }: ComposerBarProps) {
+const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp'
+
+export function ComposerBar({ onSend, onTyping, onImageUpload, compact = false }: ComposerBarProps) {
   const [val, setVal] = useState('')
   const [focus, setFocus] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -44,6 +48,12 @@ export function ComposerBar({ onSend, onTyping, compact = false }: ComposerBarPr
     onTyping?.(v.length > 0)
   }
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file && onImageUpload) onImageUpload(file)
+    e.target.value = ''
+  }
+
   return (
     <div style={{ position: 'relative' }}>
       {emojiOpen && (
@@ -63,6 +73,15 @@ export function ComposerBar({ onSend, onTyping, compact = false }: ComposerBarPr
           ))}
         </div>
       )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept={ACCEPTED}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+
       <div className={'composer-bar' + (focus ? ' focus' : '')}>
         <button
           className="icon-btn round emoji-trigger"
@@ -73,7 +92,12 @@ export function ComposerBar({ onSend, onTyping, compact = false }: ComposerBarPr
           <IcSmile size={21} />
         </button>
         {!compact && (
-          <button className="icon-btn round" style={{ width: 38, height: 38 }} title="Attach image">
+          <button
+            className="icon-btn round"
+            style={{ width: 38, height: 38 }}
+            title="Attach image"
+            onClick={() => fileRef.current?.click()}
+          >
             <IcClip size={20} />
           </button>
         )}

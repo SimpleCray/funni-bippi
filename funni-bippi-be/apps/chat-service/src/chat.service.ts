@@ -60,11 +60,12 @@ export class ChatService implements OnModuleInit {
     this.broadcast({
       type: 'emit-to-room',
       roomId: payload.roomId,
+      excludeSocketIds: payload.fromSocketId ? [payload.fromSocketId] : undefined,
       event: 'chat:message',
       data: {
         message: {
           id: payload.messageId,
-          from: payload.fromUserId,
+          from: 'them',
           text: payload.text,
           time: new Date(payload.timestamp).toLocaleTimeString([], {
             hour: 'numeric',
@@ -82,6 +83,7 @@ export class ChatService implements OnModuleInit {
     this.broadcast({
       type: 'emit-to-room',
       roomId: payload.roomId,
+      excludeSocketIds: payload.fromSocketId ? [payload.fromSocketId] : undefined,
       event: 'chat:image',
       data: {
         imageUrl: payload.imageUrl,

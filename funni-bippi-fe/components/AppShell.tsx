@@ -1,27 +1,27 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '@/hooks/useTheme'
 import { useChatStore } from '@/store/chatStore'
-import { makeStranger } from '@/lib/nameGenerator'
-import { pickOpener, autoReply, sampleIcebreakers } from '@/lib/icebreakers'
-import { fireConfetti } from '@/components/ui/Confetti'
+import { useSocket } from '@/hooks/useSocket'
+import { useMatching } from '@/hooks/useMatching'
+import { useChat } from '@/hooks/useChat'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import { sampleIcebreakers } from '@/lib/icebreakers'
 import { Toast } from '@/components/ui/Toast'
 import { SettingsModal } from '@/components/ui/SettingsModal'
 import { Sidebar } from '@/components/chat/Sidebar'
 import { MatchmakingScreen } from '@/components/screens/MatchmakingScreen'
 import { LandingScreen } from '@/components/screens/LandingScreen'
 import { ChatScreen } from '@/components/screens/ChatScreen'
-import type { AccentColor, IcebreakerItem, Stranger } from '@/types'
-import { v4 as uuid } from 'uuid'
-
-const fmtTime = () => new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+import { MobileChatScreen } from '@/components/screens/MobileChatScreen'
+import type { AccentColor, IcebreakerItem } from '@/types'
 
 export default function AppShell() {
   const { theme, accent, setTheme, setAccent } = useTheme()
   const {
-    screen, setScreen, stranger, setStranger,
-    messages, typing, filter, addMessage, setTyping, reactToMessage, resetChat,
+    screen, setScreen, stranger, messages, typing, filter,
+    setTyping, reactToMessage, resetChat,
   } = useChatStore()
 
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -29,84 +29,65 @@ export default function AppShell() {
   const [rightOpen, setRightOpen] = useState(true)
   const [nav, setNav] = useState<'chat' | 'profile'>('chat')
   const [icebreakers, setIcebreakers] = useState<IcebreakerItem[]>(() => sampleIcebreakers())
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
-  const convId = useRef(0)
+  const isMobile = useIsMobile()
+  const { initSession, startMatch, cancelMatch, disconnect } = useMatching()
+  const { sendMessage, sendImage, uploadImage, emitTypingDebounced, nextStranger, report } = useChat()
 
-  function after(ms: number, fn: () => void) {
-    const id = setTimeout(fn, ms)
-    timers.current.push(id)
-  }
-  function clearTimers() {
-    timers.current.forEach(clearTimeout)
-    timers.current = []
-  }
-  function flashToast(icon: string, text: string, ms = 2600) {
+  const flashToast = (icon: string, text: string) => {
     setToast({ icon, text })
-    after(ms, () => setToast(null))
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), 2800)
   }
 
-  function strangerSpeaks(s: Stranger, text: string, id: number) {
-    if (convId.current !== id) return
-    setTyping(true)
-    after(900 + Math.random() * 900, () => {
-      if (convId.current !== id) return
-      setTyping(false)
-      addMessage({ id: uuid(), from: 'them', text, time: fmtTime() })
-    })
-  }
+  useSocket(flashToast)
 
-  function beginConversation(s: Stranger) {
-    const id = ++convId.current
-    resetChat()
-    setStranger(s)
+  useEffect(() => {
+    initSession()
+  }, [initSession])
+
+  function handleStart() {
+    setScreen('matching')
     setIcebreakers(sampleIcebreakers())
-    after(700, () => strangerSpeaks(s, pickOpener(), id))
+    setNav('chat')
+    resetChat()
+    startMatch()
   }
 
-  function startMatch() {
-    setScreen('matching')
-    clearTimers()
-    after(2600, () => {
-      const s = makeStranger(filter)
-      setScreen('chat')
-      setNav('chat')
-      beginConversation(s)
-      flashToast('✨', 'You matched! Say hi 👋')
-      fireConfetti()
-    })
-  }
-
-  function nextStranger() {
-    clearTimers()
-    setTyping(false)
-    setScreen('matching')
-    after(1600, () => {
-      const s = makeStranger(filter)
-      setScreen('chat')
-      beginConversation(s)
-      flashToast('🔀', 'New friend incoming!')
-    })
-  }
-
-  function report() {
-    flashToast('🚩', 'Thanks — reported. Finding someone new…')
-    nextStranger()
-  }
-
-  function send(text: string) {
-    const id = convId.current
-    addMessage({ id: uuid(), from: 'me', text, time: fmtTime() })
-    if (stranger) {
-      after(550, () => strangerSpeaks(stranger, autoReply(text), id))
-    }
-  }
-
-  function goHome() {
-    clearTimers()
+  function handleCancel() {
+    cancelMatch()
     setTyping(false)
     setScreen('landing')
     resetChat()
+  }
+
+  function handleGoHome() {
+    disconnect()
+    setTyping(false)
+    setScreen('landing')
+    resetChat()
+  }
+
+  function handleNext() {
+    setTyping(false)
+    setScreen('matching')
+    resetChat()
+    setIcebreakers(sampleIcebreakers())
+    nextStranger()
+    setTimeout(() => setScreen('matching'), 0)
+  }
+
+  function handleReport() {
+    flashToast('🚩', 'Thanks — reported. Finding someone new…')
+    report()
+    handleNext()
+  }
+
+  async function handleImageUpload(file: File) {
+    const url = await uploadImage(file)
+    if (url) sendImage(url)
+    else flashToast('❌', 'Upload failed. Try again.')
   }
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
@@ -117,19 +98,35 @@ export default function AppShell() {
     setAccent: setAccent as (a: AccentColor) => void,
     theme,
     toggleTheme,
-    onLogo: goHome,
+    onLogo: handleGoHome,
     openSettings: () => setSettingsOpen(true),
+  }
+
+  const chatProps = {
+    stranger, messages, typing, icebreakers,
+    rightOpen, nav, setNav,
+    accent: accent as AccentColor,
+    setAccent: setAccent as (a: AccentColor) => void,
+    theme, toggleTheme,
+    openSettings: () => setSettingsOpen(true),
+    onLogo: handleGoHome,
+    onSend: sendMessage,
+    onTyping: emitTypingDebounced,
+    onReact: reactToMessage,
+    onNext: handleNext,
+    onReport: handleReport,
+    onTogglePanel: () => setRightOpen(o => !o),
+    onImageUpload: handleImageUpload,
   }
 
   return (
     <div className="app-root" style={{ height: '100dvh' }}>
       {screen === 'landing' && (
         <LandingScreen
-          theme={theme}
-          toggleTheme={toggleTheme}
+          theme={theme} toggleTheme={toggleTheme}
           accent={accent as AccentColor}
           setAccent={setAccent as (a: AccentColor) => void}
-          onStart={startMatch}
+          onStart={handleStart}
           openSettings={() => setSettingsOpen(true)}
         />
       )}
@@ -138,33 +135,15 @@ export default function AppShell() {
         <div className="layout">
           <Sidebar {...sidebarProps} />
           <div className="center">
-            <MatchmakingScreen onCancel={goHome} />
+            <MatchmakingScreen onCancel={handleCancel} />
           </div>
         </div>
       )}
 
       {screen === 'chat' && (
-        <ChatScreen
-          stranger={stranger}
-          messages={messages}
-          typing={typing}
-          icebreakers={icebreakers}
-          rightOpen={rightOpen}
-          nav={nav}
-          setNav={setNav}
-          accent={accent as AccentColor}
-          setAccent={setAccent as (a: AccentColor) => void}
-          theme={theme}
-          toggleTheme={toggleTheme}
-          openSettings={() => setSettingsOpen(true)}
-          onLogo={goHome}
-          onSend={send}
-          onTyping={setTyping}
-          onReact={reactToMessage}
-          onNext={nextStranger}
-          onReport={report}
-          onTogglePanel={() => setRightOpen(o => !o)}
-        />
+        isMobile
+          ? <MobileChatScreen {...chatProps} />
+          : <ChatScreen {...chatProps} />
       )}
 
       {toast && <Toast icon={toast.icon} text={toast.text} />}
