@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
 interface ToastProps {
-  icon: string
-  text: string
+  icon: string;
+  text: string;
 }
 
 export function Toast({ icon, text }: ToastProps) {
   return (
-    <div className="toast-wrap">
-      <div className="toast">
-        <span className="spark">{icon}</span>
+    <div className='toast-wrap'>
+      <div className='toast'>
+        <span className='spark'>{icon}</span>
         {text}
       </div>
     </div>
-  )
+  );
 }

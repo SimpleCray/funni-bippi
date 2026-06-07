@@ -1,27 +1,27 @@
-'use client'
+'use client';
 
-import { create } from 'zustand'
-import type { Filter, Message, Screen, Stranger } from '@/types'
+import { create } from 'zustand';
+import type { Filter, Message, Screen, Stranger } from '@/types';
 
 interface ChatStore {
-  screen: Screen
-  stranger: Stranger | null
-  messages: Message[]
-  typing: boolean
-  filter: Filter
-  roomId: string | null
-  sessionId: string | null
-  userId: string | null
-  setScreen: (s: Screen) => void
-  setStranger: (s: Stranger | null) => void
-  addMessage: (m: Message) => void
-  setTyping: (t: boolean) => void
-  setFilter: (f: Filter) => void
-  setRoomId: (id: string | null) => void
-  setSessionId: (id: string | null) => void
-  setUserId: (id: string | null) => void
-  reactToMessage: (id: string, emoji: string) => void
-  resetChat: () => void
+  screen: Screen;
+  stranger: Stranger | null;
+  messages: Message[];
+  typing: boolean;
+  filter: Filter;
+  roomId: string | null;
+  sessionId: string | null;
+  userId: string | null;
+  setScreen: (s: Screen) => void;
+  setStranger: (s: Stranger | null) => void;
+  addMessage: (m: Message) => void;
+  setTyping: (t: boolean) => void;
+  setFilter: (f: Filter) => void;
+  setRoomId: (id: string | null) => void;
+  setSessionId: (id: string | null) => void;
+  setUserId: (id: string | null) => void;
+  reactToMessage: (id: string, emoji: string) => void;
+  resetChat: () => void;
 }
 
 export const useChatStore = create<ChatStore>()((set) => ({
@@ -41,8 +41,11 @@ export const useChatStore = create<ChatStore>()((set) => ({
   setRoomId: (roomId) => set({ roomId }),
   setSessionId: (sessionId) => set({ sessionId }),
   setUserId: (userId) => set({ userId }),
-  reactToMessage: (id, emoji) => set((s) => ({
-    messages: s.messages.map(m => m.id === id ? { ...m, reaction: m.reaction === emoji ? undefined : emoji } : m),
-  })),
+  reactToMessage: (id, emoji) =>
+    set((s) => ({
+      messages: s.messages.map((m) =>
+        m.id === id ? { ...m, reaction: m.reaction === emoji ? undefined : emoji } : m,
+      ),
+    })),
   resetChat: () => set({ stranger: null, messages: [], typing: false, roomId: null }),
-}))
+}));

@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { AccentColor, Theme } from '@/types'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { AccentColor, Theme } from '@/types';
 
 interface SettingsStore {
-  theme: Theme
-  accent: AccentColor
-  notifyMatch: boolean
-  notifySound: boolean
-  showTyping: boolean
-  setTheme: (t: Theme) => void
-  setAccent: (a: AccentColor) => void
-  setNotifyMatch: (v: boolean) => void
-  setNotifySound: (v: boolean) => void
-  setShowTyping: (v: boolean) => void
+  theme: Theme;
+  accent: AccentColor;
+  notifyMatch: boolean;
+  notifySound: boolean;
+  showTyping: boolean;
+  setTheme: (t: Theme) => void;
+  setAccent: (a: AccentColor) => void;
+  setNotifyMatch: (v: boolean) => void;
+  setNotifySound: (v: boolean) => void;
+  setShowTyping: (v: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -31,6 +31,6 @@ export const useSettingsStore = create<SettingsStore>()(
       setNotifySound: (notifySound) => set({ notifySound }),
       setShowTyping: (showTyping) => set({ showTyping }),
     }),
-    { name: 'funni-bippi-settings' }
-  )
-)
+    { name: 'funni-bippi-settings' },
+  ),
+);

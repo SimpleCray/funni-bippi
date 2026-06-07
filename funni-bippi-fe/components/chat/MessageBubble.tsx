@@ -1,22 +1,22 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import type { Message, Stranger } from '@/types'
-import { Avatar } from '@/components/ui/Avatar'
-import { QUICK_REACTS } from '@/lib/constants'
+import { motion } from 'framer-motion';
+import type { Message, Stranger } from '@/types';
+import { Avatar } from '@/components/ui/Avatar';
+import { QUICK_REACTS } from '@/lib/constants';
 
 interface MessageBubbleProps {
-  message: Message
-  stranger: Stranger | null
-  onReact: (id: string, emoji: string) => void
+  message: Message;
+  stranger: Stranger | null;
+  onReact: (id: string, emoji: string) => void;
 }
 
-import type { Transition } from 'framer-motion'
+import type { Transition } from 'framer-motion';
 
-const spring: Transition = { type: 'spring', damping: 18, stiffness: 260, mass: 0.6 }
+const spring: Transition = { type: 'spring', damping: 18, stiffness: 260, mass: 0.6 };
 
 export function MessageBubble({ message: m, stranger, onReact }: MessageBubbleProps) {
-  const mine = m.from === 'me'
+  const mine = m.from === 'me';
   return (
     <motion.div
       className={'row ' + (mine ? 'me' : 'them')}
@@ -26,25 +26,32 @@ export function MessageBubble({ message: m, stranger, onReact }: MessageBubblePr
       layout
     >
       {!mine && stranger && <Avatar stranger={stranger} size={32} />}
-      <div className="stack">
-        <div className="react-bar">
-          {QUICK_REACTS.map(e => (
-            <button key={e} onClick={() => onReact(m.id, e)}>{e}</button>
+      <div className='stack'>
+        <div className='react-bar'>
+          {QUICK_REACTS.map((e) => (
+            <button key={e} onClick={() => onReact(m.id, e)}>
+              {e}
+            </button>
           ))}
         </div>
         <div className={'bubble ' + (mine ? 'me' : 'them')}>
           {m.imageUrl && (
             <img
               src={m.imageUrl}
-              alt=""
-              style={{ maxWidth: 240, borderRadius: 12, display: 'block', marginBottom: m.text ? 6 : 0 }}
+              alt=''
+              style={{
+                maxWidth: 240,
+                borderRadius: 12,
+                display: 'block',
+                marginBottom: m.text ? 6 : 0,
+              }}
             />
           )}
           {m.text}
-          {m.reaction && <span className="reaction-chip">{m.reaction}</span>}
+          {m.reaction && <span className='reaction-chip'>{m.reaction}</span>}
         </div>
-        <div className="ts">{m.time}</div>
+        <div className='ts'>{m.time}</div>
       </div>
     </motion.div>
-  )
+  );
 }
