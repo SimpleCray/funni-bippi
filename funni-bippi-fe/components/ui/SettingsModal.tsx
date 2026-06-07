@@ -71,8 +71,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 onClick={() => setTheme('light')}
               >
                 <div className='swatch-prev' style={{ background: '#FBF5EF' }} />
-                <span>
-                  <IcSun size={15} style={{ verticalAlign: '-2px' }} /> Light
+                <span className='flex flex-col items-center justify-center' style={{ gap: 4 }}>
+                  <IcSun size={15} style={{ verticalAlign: '-2px' }} />
+                  Light
                 </span>
               </div>
               <div
@@ -80,8 +81,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 onClick={() => setTheme('dark')}
               >
                 <div className='swatch-prev' style={{ background: '#181410' }} />
-                <span>
-                  <IcMoon size={15} style={{ verticalAlign: '-2px' }} /> Dark
+                <span className='flex flex-col items-center justify-center' style={{ gap: 4 }}>
+                  <IcMoon size={15} style={{ verticalAlign: '-2px' }} />
+                  Dark
                 </span>
               </div>
             </div>
