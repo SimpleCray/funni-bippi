@@ -11,7 +11,10 @@ const fmtTime = () => new Date().toLocaleTimeString([], { hour: 'numeric', minut
 
 export function useSocket(onToast: (icon: string, text: string) => void) {
   const toastRef = useRef(onToast);
-  toastRef.current = onToast;
+
+  useEffect(() => {
+    toastRef.current = onToast;
+  }, [onToast]);
 
   useEffect(() => {
     const store = useChatStore.getState;

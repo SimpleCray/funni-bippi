@@ -1,17 +1,17 @@
 'use client';
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import type { Message, Stranger } from '@/types';
 import { Avatar } from '@/components/ui/Avatar';
 import { QUICK_REACTS } from '@/lib/constants';
+import type { Transition } from 'framer-motion';
 
 interface MessageBubbleProps {
   message: Message;
   stranger: Stranger | null;
   onReact: (id: string, emoji: string) => void;
 }
-
-import type { Transition } from 'framer-motion';
 
 const spring: Transition = { type: 'spring', damping: 18, stiffness: 260, mass: 0.6 };
 
@@ -36,9 +36,11 @@ export function MessageBubble({ message: m, stranger, onReact }: MessageBubblePr
         </div>
         <div className={'bubble ' + (mine ? 'me' : 'them')}>
           {m.imageUrl && (
-            <img
+            <Image
               src={m.imageUrl}
               alt=''
+              width={240}
+              height={240}
               style={{
                 maxWidth: 240,
                 borderRadius: 12,

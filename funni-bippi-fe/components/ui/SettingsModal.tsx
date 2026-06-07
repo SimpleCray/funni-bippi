@@ -8,6 +8,12 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
+const Toggle = ({ on, onClick }: { on: boolean; onClick: () => void }) => (
+  <button className={'tog' + (on ? ' on' : '')} onClick={onClick}>
+    <span className='knob' />
+  </button>
+);
+
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const {
     accent,
@@ -21,12 +27,6 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     showTyping,
     setShowTyping,
   } = useSettingsStore();
-
-  const Toggle = ({ on, onClick }: { on: boolean; onClick: () => void }) => (
-    <button className={'tog' + (on ? ' on' : '')} onClick={onClick}>
-      <span className='knob' />
-    </button>
-  );
 
   return (
     <div

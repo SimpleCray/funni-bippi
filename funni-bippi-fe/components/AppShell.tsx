@@ -19,17 +19,8 @@ import type { AccentColor, IcebreakerItem } from '@/types';
 
 export default function AppShell() {
   const { theme, accent, setTheme, setAccent } = useTheme();
-  const {
-    screen,
-    setScreen,
-    stranger,
-    messages,
-    typing,
-    filter,
-    setTyping,
-    reactToMessage,
-    resetChat,
-  } = useChatStore();
+  const { screen, setScreen, stranger, messages, typing, setTyping, reactToMessage, resetChat } =
+    useChatStore();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState<{ icon: string; text: string } | null>(null);
@@ -148,8 +139,6 @@ export default function AppShell() {
         <LandingScreen
           theme={theme}
           toggleTheme={toggleTheme}
-          accent={accent as AccentColor}
-          setAccent={setAccent as (a: AccentColor) => void}
           onStart={handleStart}
           openSettings={() => setSettingsOpen(true)}
           disabled={!isSessionReady}

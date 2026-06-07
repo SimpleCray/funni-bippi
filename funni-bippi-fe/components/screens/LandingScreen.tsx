@@ -12,14 +12,12 @@ import {
   IcSettings,
 } from '@/components/ui/icons';
 import { useChatStore } from '@/store/chatStore';
-import { ACCENT_COLORS, GENDER_FILTERS } from '@/lib/constants';
-import type { AccentColor, Theme } from '@/types';
+import { GENDER_FILTERS } from '@/lib/constants';
+import type { Theme } from '@/types';
 
 interface LandingScreenProps {
   theme: Theme;
   toggleTheme: () => void;
-  accent: AccentColor;
-  setAccent: (a: AccentColor) => void;
   onStart: () => void;
   openSettings: () => void;
   disabled?: boolean;
@@ -30,8 +28,6 @@ const FILTER_ICONS = { everyone: IcGlobe, male: IcMars, female: IcVenus };
 export function LandingScreen({
   theme,
   toggleTheme,
-  accent,
-  setAccent,
   onStart,
   openSettings,
   disabled,
@@ -140,18 +136,6 @@ export function LandingScreen({
               );
             })}
           </div>
-          {/* <div style={{ display: 'flex', gap: 9, alignItems: 'center', marginTop: 4 }}>
-            <span style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>theme</span>
-            {ACCENT_COLORS.slice(0, 3).map(a => (
-              <span
-                key={a.id}
-                className={'swatch' + (accent === a.id ? ' on' : '')}
-                style={{ background: a.hex, color: a.hex }}
-                onClick={() => setAccent(a.id)}
-                title={a.id}
-              />
-            ))}
-          </div> */}
         </div>
       </div>
     </div>

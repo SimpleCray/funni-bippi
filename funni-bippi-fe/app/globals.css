@@ -180,7 +180,7 @@ input, textarea { font-family: inherit; }
   font-family: var(--font-display); font-weight: 600; font-size: 14.5px;
   padding: 10px 20px; border-radius: 99px; color: var(--text-soft);
   display: inline-flex; align-items: center; gap: 7px;
-  transition: color .2s, transform .15s;
+  transition: color .2s, background .24s cubic-bezier(.34,1.56,.64,1), box-shadow .24s cubic-bezier(.34,1.56,.64,1);
 }
 .seg button:hover { color: var(--text); }
 .seg button.on { background: var(--bg-elev); color: var(--accent-strong); box-shadow: var(--shadow-s); }
