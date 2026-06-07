@@ -14,6 +14,7 @@ import {
 import { useChatStore } from '@/store/chatStore';
 import { GENDER_FILTERS } from '@/lib/constants';
 import type { Theme } from '@/types';
+import { LogoMascot } from '../brand/LogoMascot';
 
 interface LandingScreenProps {
   theme: Theme;
@@ -21,6 +22,7 @@ interface LandingScreenProps {
   onStart: () => void;
   openSettings: () => void;
   disabled?: boolean;
+  isSessionError?: boolean;
 }
 
 const FILTER_ICONS = { everyone: IcGlobe, male: IcMars, female: IcVenus };
@@ -31,6 +33,7 @@ export function LandingScreen({
   onStart,
   openSettings,
   disabled,
+  isSessionError,
 }: LandingScreenProps) {
   const { filter, setFilter } = useChatStore();
 
@@ -83,7 +86,7 @@ export function LandingScreen({
 
       <header className='landing-top'>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-          <Logo size={40} />
+          <LogoMascot size={40} />
           <span className='wordmark' style={{ fontSize: 21 }}>
             Funni Bippi
           </span>
@@ -117,9 +120,13 @@ export function LandingScreen({
           <button
             className='btn btn-primary huge pulse-hover'
             onClick={onStart}
-            disabled={disabled}
+            disabled={disabled || isSessionError}
           >
-            {disabled ? 'Connecting…' : 'Start Chatting ✨'}
+            {isSessionError
+              ? '⚠️ Server unreachable'
+              : disabled
+                ? 'Connecting…'
+                : 'Start Chatting ✨'}
           </button>
           <div className='filter-label'>I&apos;d like to chat with</div>
           <div className='seg'>

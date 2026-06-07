@@ -142,6 +142,7 @@ export default function AppShell() {
           onStart={handleStart}
           openSettings={() => setSettingsOpen(true)}
           disabled={!isSessionReady}
+          isSessionError={isSessionError}
         />
       )}
 
