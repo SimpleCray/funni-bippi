@@ -103,7 +103,7 @@ export function LandingScreen({
 
       <div className='landing-hero'>
         <div style={{ marginBottom: 6 }}>
-          <Mascot size={104} />
+          <Mascot size={104} movingEyes />
         </div>
         <div className='eyebrow'>
           <IcSparkle size={15} /> Meet someone new, right now

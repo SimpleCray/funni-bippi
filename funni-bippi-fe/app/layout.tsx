@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   title: 'Funni Bippi — World without strangers.',
   description:
     'Chat anonymously with a random stranger in real time. No accounts, no profiles — just conversation.',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,16 +1,68 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+
 interface MascotProps {
   size?: number;
   mood?: 'happy' | 'wink';
   bob?: boolean;
+  movingEyes?: boolean;
 }
 
-export function Mascot({ size = 120, mood = 'happy', bob = true }: MascotProps) {
+export function Mascot({
+  size = 120,
+  mood = 'happy',
+  bob = true,
+  movingEyes = false,
+}: MascotProps) {
   const eyeY = 0.46;
   const blink = mood === 'wink';
+  const svgRef = useRef<SVGSVGElement>(null);
+  const leftPupilRef = useRef<SVGCircleElement>(null);
+  const rightPupilRef = useRef<SVGCircleElement>(null);
+
+  useEffect(() => {
+    if (!movingEyes || !svgRef.current) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      const rect = svg.getBoundingClientRect();
+      const svgCenterX = rect.left + rect.width / 2;
+      const svgCenterY = rect.top + rect.height / 2;
+
+      const angle = Math.atan2(e.clientY - svgCenterY, e.clientX - svgCenterX);
+      const maxOffset = 3.5;
+
+      const leftX = 39.5 + Math.cos(angle) * maxOffset;
+      const leftY = 53 + Math.sin(angle) * maxOffset;
+      const rightX = 63.5 + Math.cos(angle) * maxOffset;
+      const rightY = 53 + Math.sin(angle) * maxOffset;
+
+      if (leftPupilRef.current) {
+        leftPupilRef.current.setAttribute('cx', leftX.toString());
+        leftPupilRef.current.setAttribute('cy', leftY.toString());
+      }
+      if (rightPupilRef.current) {
+        rightPupilRef.current.setAttribute('cx', rightX.toString());
+        rightPupilRef.current.setAttribute('cy', rightY.toString());
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [movingEyes]);
 
   return (
     <span className={`blob-wrap${bob ? ' bob' : ''}`} style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox='0 0 100 100' style={{ overflow: 'visible' }}>
+      <svg
+        ref={svgRef}
+        width={size}
+        height={size}
+        viewBox='0 0 100 100'
+        style={{ overflow: 'visible' }}
+      >
         <defs>
           <linearGradient id='blobg' x1='0' y1='0' x2='0' y2='1'>
             <stop offset='0' stopColor='var(--accent-2)' />
@@ -45,8 +97,22 @@ export function Mascot({ size = 120, mood = 'happy', bob = true }: MascotProps) 
           </>
         ) : (
           <>
-            <circle cx='39.5' cy='53' r='4.4' fill='#2B2520' />
-            <circle cx='63.5' cy='53' r='4.4' fill='#2B2520' />
+            <circle
+              ref={leftPupilRef}
+              cx='39.5'
+              cy='53'
+              r='4.4'
+              fill='#2B2520'
+              style={{ transition: movingEyes ? 'none' : 'cx 0.05s, cy 0.05s' }}
+            />
+            <circle
+              ref={rightPupilRef}
+              cx='63.5'
+              cy='53'
+              r='4.4'
+              fill='#2B2520'
+              style={{ transition: movingEyes ? 'none' : 'cx 0.05s, cy 0.05s' }}
+            />
           </>
         )}
 
