@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import { ClientsModule, Transport } from '@nestjs/microservices'
-import { RedisModule } from '@app/shared'
-import { MatchingController } from './matching.controller'
-import { MatchingService } from './matching.service'
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { RedisModule } from '@app/shared';
+import { MatchingController } from './matching.controller';
+import { MatchingService } from './matching.service';
 
 @Module({
   imports: [

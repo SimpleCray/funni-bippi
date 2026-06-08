@@ -8,6 +8,6 @@ export const KafkaTopics = {
   CHAT_USER_LEFT: 'chat.user-left',
   IMAGE_UPLOADED: 'image.uploaded',
   GATEWAY_BROADCAST: 'gateway.broadcast',
-} as const
+} as const;
 
-export type KafkaTopic = (typeof KafkaTopics)[keyof typeof KafkaTopics]
+export type KafkaTopic = (typeof KafkaTopics)[keyof typeof KafkaTopics];

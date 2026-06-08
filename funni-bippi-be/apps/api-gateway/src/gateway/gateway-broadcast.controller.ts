@@ -1,7 +1,7 @@
-import { Controller } from '@nestjs/common'
-import { EventPattern, Payload } from '@nestjs/microservices'
-import { KafkaTopics, GatewayBroadcastPayload } from '@app/shared'
-import { ChatGateway } from './chat.gateway'
+import { Controller } from '@nestjs/common';
+import { EventPattern, Payload } from '@nestjs/microservices';
+import { KafkaTopics, GatewayBroadcastPayload } from '@app/shared';
+import { ChatGateway } from './chat.gateway';
 
 @Controller()
 export class GatewayBroadcastController {
@@ -9,6 +9,6 @@ export class GatewayBroadcastController {
 
   @EventPattern(KafkaTopics.GATEWAY_BROADCAST)
   handleBroadcast(@Payload() data: GatewayBroadcastPayload) {
-    this.chatGateway.handleBroadcast(data)
+    this.chatGateway.handleBroadcast(data);
   }
 }

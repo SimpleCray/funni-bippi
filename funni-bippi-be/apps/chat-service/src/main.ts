@@ -1,6 +1,6 @@
-import { NestFactory } from '@nestjs/core'
-import { MicroserviceOptions, Transport } from '@nestjs/microservices'
-import { ChatModule } from './chat.module'
+import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { ChatModule } from './chat.module';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -15,8 +15,8 @@ async function bootstrap() {
         consumer: { groupId: 'chat-consumer' },
       },
     },
-  )
-  await app.listen()
-  console.log('Chat Service listening on Kafka')
+  );
+  await app.listen();
+  console.log('Chat Service listening on Kafka');
 }
-bootstrap()
+bootstrap();

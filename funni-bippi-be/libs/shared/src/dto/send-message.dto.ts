@@ -1,46 +1,52 @@
-import { IsString, IsUUID, MaxLength, IsOptional, IsUrl } from 'class-validator'
+import {
+  IsString,
+  IsUUID,
+  MaxLength,
+  IsOptional,
+  IsUrl,
+} from 'class-validator';
 
 export class SendMessageDto {
   @IsString()
   @MaxLength(2000)
-  text: string
+  text: string;
 
   @IsString()
   @IsUUID()
-  roomId: string
+  roomId: string;
 }
 
 export class SendImageDto {
   @IsString()
   @IsUrl()
-  imageUrl: string
+  imageUrl: string;
 
   @IsString()
   @IsUUID()
-  roomId: string
+  roomId: string;
 }
 
 export class TypingDto {
   @IsString()
   @IsUUID()
-  roomId: string
+  roomId: string;
 
   @IsOptional()
-  typing: boolean
+  typing: boolean;
 }
 
 export class LeaveRoomDto {
   @IsString()
   @IsUUID()
-  roomId: string
+  roomId: string;
 }
 
 export class ReportDto {
   @IsString()
   @IsUUID()
-  roomId: string
+  roomId: string;
 
   @IsString()
   @IsOptional()
-  reason?: string
+  reason?: string;
 }

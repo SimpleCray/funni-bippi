@@ -6,10 +6,16 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
-} from '@nestjs/websockets'
-import { Inject, Logger, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common'
-import { ClientKafka } from '@nestjs/microservices'
-import { Server, Socket } from 'socket.io'
+} from '@nestjs/websockets';
+import {
+  Inject,
+  Logger,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import { ClientKafka } from '@nestjs/microservices';
+import { Server, Socket } from 'socket.io';
 import {
   SessionGuard,
   JoinQueueDto,
@@ -20,9 +26,9 @@ import {
   ReportDto,
   KafkaTopics,
   GatewayBroadcastPayload,
-} from '@app/shared'
-import { AuthService } from '../auth/auth.service'
-import { v4 as uuid } from 'uuid'
+} from '@app/shared';
+import { AuthService } from '../auth/auth.service';
+import { v4 as uuid } from 'uuid';
 
 @WebSocketGateway({
   cors: {
@@ -32,8 +38,8 @@ import { v4 as uuid } from 'uuid'
   transports: ['websocket'],
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer() server: Server
-  private readonly logger = new Logger(ChatGateway.name)
+  @WebSocketServer() server: Server;
+  private readonly logger = new Logger(ChatGateway.name);
 
   constructor(
     @Inject('KAFKA_CLIENT') private readonly kafka: ClientKafka,
@@ -41,31 +47,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   async handleConnection(client: Socket) {
-    const sessionId = client.handshake.auth?.sessionId as string
+    const sessionId = client.handshake.auth?.sessionId as string;
     if (!sessionId) {
-      client.disconnect()
-      return
+      client.disconnect();
+      return;
     }
-    const session = await this.authService.getSession(sessionId)
+    const session = await this.authService.getSession(sessionId);
     if (!session) {
-      client.disconnect()
-      return
+      client.disconnect();
+      return;
     }
-    await this.authService.updateSocketId(sessionId, client.id)
-    client.data.userId = session.userId
-    client.data.sessionId = sessionId
-    this.logger.log(`Client connected: ${client.id} (user: ${session.userId})`)
+    await this.authService.updateSocketId(sessionId, client.id);
+    client.data.userId = session.userId;
+    client.data.sessionId = sessionId;
+    this.logger.log(`Client connected: ${client.id} (user: ${session.userId})`);
   }
 
   async handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected: ${client.id}`)
-    const sessionId = await this.authService.removeSocket(client.id)
-    if (!sessionId) return
+    this.logger.log(`Client disconnected: ${client.id}`);
+    const sessionId = await this.authService.removeSocket(client.id);
+    if (!sessionId) return;
 
     this.kafka.emit(KafkaTopics.CHAT_USER_LEFT, {
       userId: client.data.userId,
       socketId: client.id,
-    })
+    });
   }
 
   @UseGuards(SessionGuard)
@@ -79,7 +85,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId: client.data.userId,
       socketId: client.id,
       gender: dto.gender,
-    })
+    });
   }
 
   @UseGuards(SessionGuard)
@@ -88,7 +94,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.kafka.emit(KafkaTopics.USER_LEAVE_QUEUE, {
       userId: client.data.userId,
       socketId: client.id,
-    })
+    });
   }
 
   @UseGuards(SessionGuard)
@@ -105,7 +111,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       text: dto.text,
       messageId: uuid(),
       timestamp: Date.now(),
-    })
+    });
   }
 
   @UseGuards(SessionGuard)
@@ -122,7 +128,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       imageUrl: dto.imageUrl,
       messageId: uuid(),
       timestamp: Date.now(),
-    })
+    });
   }
 
   @UseGuards(SessionGuard)
@@ -132,7 +138,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() dto: TypingDto,
   ) {
-    client.to(dto.roomId).emit('chat:typing', { typing: dto.typing ?? true })
+    client.to(dto.roomId).emit('chat:typing', { typing: dto.typing ?? true });
   }
 
   @UseGuards(SessionGuard)
@@ -147,7 +153,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socketId: client.id,
       roomId: dto.roomId,
       reason: 'next',
-    })
+    });
   }
 
   @UseGuards(SessionGuard)
@@ -162,24 +168,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socketId: client.id,
       roomId: dto.roomId,
       reason: 'report',
-    })
+    });
   }
 
   handleBroadcast(payload: GatewayBroadcastPayload) {
     if (payload.type === 'join-room' && payload.socketIds && payload.roomId) {
       for (const sid of payload.socketIds) {
-        const sock = this.server.sockets.sockets.get(sid)
-        if (sock) sock.join(payload.roomId)
+        const sock = this.server.sockets.sockets.get(sid);
+        if (sock) sock.join(payload.roomId);
       }
-    } else if (payload.type === 'emit-to-socket' && payload.socketIds && payload.event) {
+    } else if (
+      payload.type === 'emit-to-socket' &&
+      payload.socketIds &&
+      payload.event
+    ) {
       for (const sid of payload.socketIds) {
-        this.server.to(sid).emit(payload.event, payload.data)
+        this.server.to(sid).emit(payload.event, payload.data);
       }
-    } else if (payload.type === 'emit-to-room' && payload.roomId && payload.event) {
+    } else if (
+      payload.type === 'emit-to-room' &&
+      payload.roomId &&
+      payload.event
+    ) {
       const emitter = payload.excludeSocketIds?.length
         ? this.server.to(payload.roomId).except(payload.excludeSocketIds)
-        : this.server.to(payload.roomId)
-      emitter.emit(payload.event, payload.data)
+        : this.server.to(payload.roomId);
+      emitter.emit(payload.event, payload.data);
     }
   }
 }

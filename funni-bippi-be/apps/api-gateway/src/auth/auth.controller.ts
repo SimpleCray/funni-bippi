@@ -1,5 +1,5 @@
-import { Controller, Post, Get } from '@nestjs/common'
-import { AuthService } from './auth.service'
+import { Controller, Post, Get } from '@nestjs/common';
+import { AuthService } from './auth.service';
 
 @Controller()
 export class AuthController {
@@ -7,11 +7,11 @@ export class AuthController {
 
   @Post('session/init')
   async initSession() {
-    return this.authService.createSession()
+    return this.authService.createSession();
   }
 
   @Get('health')
   health() {
-    return { status: 'ok' }
+    return { status: 'ok' };
   }
 }

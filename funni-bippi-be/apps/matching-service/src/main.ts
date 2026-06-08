@@ -1,6 +1,6 @@
-import { NestFactory } from '@nestjs/core'
-import { MicroserviceOptions, Transport } from '@nestjs/microservices'
-import { MatchingModule } from './matching.module'
+import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { MatchingModule } from './matching.module';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -15,8 +15,8 @@ async function bootstrap() {
         consumer: { groupId: 'matching-consumer' },
       },
     },
-  )
-  await app.listen()
-  console.log('Matching Service listening on Kafka')
+  );
+  await app.listen();
+  console.log('Matching Service listening on Kafka');
 }
-bootstrap()
+bootstrap();
