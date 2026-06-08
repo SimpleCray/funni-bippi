@@ -111,10 +111,7 @@ export class MatchingService implements OnModuleInit {
     }
   }
 
-  private async createMatch(
-    user1: QueueEntry,
-    user2: QueueEntry,
-  ): Promise<void> {
+  private createMatch(user1: QueueEntry, user2: QueueEntry): void {
     const roomId = uuid();
     const strangerForUser1 = makeStranger(user2.gender);
     const strangerForUser2 = makeStranger(user1.gender);

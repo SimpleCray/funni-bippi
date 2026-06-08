@@ -16,6 +16,19 @@ import {
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { Server, Socket } from 'socket.io';
+
+interface SocketData {
+  userId: string;
+  sessionId: string;
+}
+
+type TypedSocket = Socket<
+  Record<string, never>,
+  Record<string, never>,
+  Record<string, never>,
+  SocketData
+>;
+
 import {
   SessionGuard,
   JoinQueueDto,
@@ -38,7 +51,7 @@ import { v4 as uuid } from 'uuid';
   transports: ['websocket'],
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server!: Server;
   private readonly logger = new Logger(ChatGateway.name);
 
   constructor(
@@ -46,7 +59,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly authService: AuthService,
   ) {}
 
-  async handleConnection(client: Socket) {
+  async handleConnection(client: TypedSocket) {
     const sessionId = client.handshake.auth?.sessionId as string;
     if (!sessionId) {
       client.disconnect();
@@ -63,7 +76,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Client connected: ${client.id} (user: ${session.userId})`);
   }
 
-  async handleDisconnect(client: Socket) {
+  async handleDisconnect(client: TypedSocket) {
     this.logger.log(`Client disconnected: ${client.id}`);
     const sessionId = await this.authService.removeSocket(client.id);
     if (!sessionId) return;
@@ -78,7 +91,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage('user:join')
   handleJoinQueue(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: JoinQueueDto,
   ) {
     this.kafka.emit(KafkaTopics.USER_JOIN_QUEUE, {
@@ -90,7 +103,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(SessionGuard)
   @SubscribeMessage('user:cancel')
-  handleCancelQueue(@ConnectedSocket() client: Socket) {
+  handleCancelQueue(@ConnectedSocket() client: TypedSocket) {
     this.kafka.emit(KafkaTopics.USER_LEAVE_QUEUE, {
       userId: client.data.userId,
       socketId: client.id,
@@ -101,7 +114,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage('chat:message')
   handleMessage(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: SendMessageDto,
   ) {
     this.kafka.emit(KafkaTopics.CHAT_MESSAGE, {
@@ -118,7 +131,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage('chat:image')
   handleImage(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: SendImageDto,
   ) {
     this.kafka.emit(KafkaTopics.CHAT_IMAGE, {
@@ -135,7 +148,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage('chat:typing')
   handleTyping(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: TypingDto,
   ) {
     client.to(dto.roomId).emit('chat:typing', { typing: dto.typing ?? true });
@@ -145,7 +158,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage('chat:next')
   handleNext(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: LeaveRoomDto,
   ) {
     this.kafka.emit(KafkaTopics.CHAT_USER_LEFT, {
@@ -160,7 +173,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage('chat:report')
   handleReport(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: ReportDto,
   ) {
     this.kafka.emit(KafkaTopics.CHAT_USER_LEFT, {
