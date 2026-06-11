@@ -21,6 +21,7 @@ For full architecture requirements, see **[../documents/BACKEND_REQUIREMENTS.md]
 9. [Kafka Topics](#kafka-topics)
 10. [Redis Keys](#redis-keys)
 11. [Troubleshooting](#troubleshooting)
+12. [Horizontal Scaling (Multi-Instance)](#horizontal-scaling-multi-instance)
 
 ---
 
@@ -316,15 +317,23 @@ SESSION_TTL_SECONDS=86400
 
 | Script | Description |
 |--------|-------------|
-| `npm run start:api` | Start api-gateway in watch mode |
+| `npm run start:api` | Start api-gateway in watch mode (`:3001`) |
+| `npm run start:api:2` | Start a 2nd api-gateway instance (`:3002`) — for scaling |
+| `npm run start:api:3` | Start a 3rd api-gateway instance (`:3003`) — for scaling |
 | `npm run start:matching` | Start matching-service in watch mode |
+| `npm run start:matching:2` | Start a 2nd matching-service instance — for scaling |
 | `npm run start:chat` | Start chat-service in watch mode |
+| `npm run start:chat:2` | Start a 2nd chat-service instance — for scaling |
 | `npm run build:all` | Build all three services |
-| `npm run start:api:prod` | Run built api-gateway |
+| `npm run start:api:prod` | Run built api-gateway (`:3001`) |
+| `npm run start:api:2:prod` | Run built api-gateway, 2nd instance (`:3002`) |
+| `npm run start:api:3:prod` | Run built api-gateway, 3rd instance (`:3003`) |
 | `npm run start:matching:prod` | Run built matching-service |
 | `npm run start:chat:prod` | Run built chat-service |
 | `npm run test` | Run unit tests |
 | `npm run lint` | Run ESLint |
+
+> See [Horizontal Scaling](#horizontal-scaling-multi-instance) for how the `:2`/`:3` scripts fit together with nginx.
 
 ---
 
@@ -437,6 +446,104 @@ docker logs funni-redis
 
 - Create the upload directory: `C:\tmp\uploads` (Windows) or `/tmp/uploads` (Linux/macOS)
 - Max file size is 5 MB; only `image/*` MIME types are accepted
+
+---
+
+## Horizontal Scaling (Multi-Instance)
+
+A single `api-gateway` process holds every WebSocket connection in its own memory. Realistic ceiling on one machine:
+
+| Tuning | ~Max concurrent sockets |
+|--------|------------------------|
+| Default (no OS tuning) | ~10k (hits `ulimit -n` / default fd limits) |
+| Tuned (`ulimit -n 1000000`, raised Node heap) | ~50k–100k |
+| Heavily tuned, beefy single box | ~150k–200k (GC pauses start hurting latency for everyone) |
+
+To go beyond that — and to get to ~1M concurrent users — you run **multiple `api-gateway` instances** behind a load balancer. `matching-service` and `chat-service` scale too, but only for Kafka throughput; they don't affect the socket ceiling.
+
+### What changed to make this possible
+
+`api-gateway` now uses a **Socket.IO Redis adapter** (`apps/api-gateway/src/redis-io.adapter.ts`). Without it, `server.to(roomId).emit(...)` / `server.to(socketId).emit(...)` only reach sockets connected to *that same process* — a message routed to instance A would never reach a user connected to instance B. The adapter makes all instances share room/broadcast state via Redis pub/sub, so it doesn't matter which instance holds the Kafka `gateway.broadcast` message or which instance holds the target socket.
+
+### Step 1 — Run multiple api-gateway instances
+
+Each instance needs its own `PORT` (the Kafka `clientId` is auto-suffixed with the port, so logs/metrics stay distinguishable). Open one terminal per instance:
+
+```powershell
+# Terminal 1
+npm run start:api      # :3001
+
+# Terminal 2
+npm run start:api:2    # :3002
+
+# Terminal 3 (optional)
+npm run start:api:3    # :3003
+```
+
+All instances connect to the same Redis (adapter) and the same Kafka consumer group `api-gateway-consumer` — Kafka assigns the `gateway.broadcast` partition(s) to whichever instance(s) are in the group, and the Redis adapter relays the resulting `emit()` to whichever instance actually holds the target socket.
+
+To add a 4th+ instance, copy a script in `package.json`:
+
+```json
+"start:api:4": "cross-env PORT=3004 nest start api-gateway --watch"
+```
+
+### Step 2 — Point nginx at all instances
+
+`nginx/nginx.conf` already lists multiple upstream servers:
+
+```nginx
+upstream api_gateway {
+  ip_hash;             # sticky sessions — keeps a client on one instance
+  server localhost:3001;
+  server localhost:3002;
+  # server localhost:3003;
+}
+```
+
+Uncomment/add a `server` line per running instance, then reload:
+
+```powershell
+nginx -t      # validate config
+nginx -s reload
+```
+
+`ip_hash` is just an optimization (fewer cross-instance Redis adapter round-trips on reconnect) — correctness doesn't depend on it because of the Redis adapter.
+
+### Step 3 — Scale matching-service / chat-service (optional, for throughput)
+
+These are stateless Kafka consumers — just run more processes with the same group:
+
+```powershell
+npm run start:matching:2
+npm run start:chat:2
+```
+
+**Catch:** Kafka topics auto-create with **1 partition**, so only one consumer per group actually receives messages — extra instances sit idle until you add partitions:
+
+```powershell
+docker exec -it funni-kafka kafka-topics --alter --topic user.join-queue --partitions 3 --bootstrap-server localhost:9092
+docker exec -it funni-kafka kafka-topics --alter --topic user.leave-queue --partitions 3 --bootstrap-server localhost:9092
+docker exec -it funni-kafka kafka-topics --alter --topic match.found --partitions 3 --bootstrap-server localhost:9092
+docker exec -it funni-kafka kafka-topics --alter --topic chat.message --partitions 3 --bootstrap-server localhost:9092
+docker exec -it funni-kafka kafka-topics --alter --topic chat.image --partitions 3 --bootstrap-server localhost:9092
+docker exec -it funni-kafka kafka-topics --alter --topic chat.user-left --partitions 3 --bootstrap-server localhost:9092
+```
+
+### Step 4 — Verify cross-instance broadcast works
+
+1. Start 2 api-gateway instances (Step 1) + matching-service + chat-service.
+2. Point nginx at both (Step 2), or connect two browser tabs directly to `:3001` and `:3002`.
+3. Open two tabs, each connecting to a **different** gateway instance, and start chatting.
+4. If messages relay correctly between the two tabs, the Redis adapter is working — without it, the conversation would silently break whenever the two users land on different instances.
+
+Each instance logs `[RedisIoAdapter] Socket.IO Redis adapter connected` on boot — confirm this appears for every instance.
+
+### What this does NOT solve at 1M scale
+
+- **Single Redis** becomes a bottleneck (sessions + queues + adapter pub/sub) → needs Redis Cluster.
+- **Single nginx** becomes a bottleneck → needs multiple LBs / a cloud LB / DNS round-robin.
+- Each `api-gateway` instance still caps out per the table above — 1M users needs roughly 10–50+ instances depending on tuning.
 
 ---
 
