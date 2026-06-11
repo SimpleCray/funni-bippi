@@ -585,6 +585,71 @@ textarea {
   border-radius: 22px 22px 7px 22px;
   box-shadow: 0 4px 14px -4px var(--accent);
 }
+.chat-image-block {
+  position: relative;
+  line-height: 0;
+}
+.chat-image-btn {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-s);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.chat-image-btn:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-m);
+}
+.chat-image {
+  display: block;
+  max-width: 240px;
+  max-height: 320px;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.image-lightbox-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(20, 12, 6, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 48px 24px 24px;
+  animation: fade 0.2s both;
+  cursor: zoom-out;
+}
+.image-lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  z-index: 1;
+}
+.image-lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.image-lightbox-img {
+  max-width: min(92vw, 1200px);
+  max-height: 88vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  cursor: default;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
+}
 
 .row .ts {
   font-size: 11px;
@@ -759,6 +824,91 @@ textarea {
   cursor: default;
   transform: none;
   box-shadow: none;
+}
+
+.attachment-strip {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.attachment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.attachment-header button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+.attachment-header button:hover {
+  text-decoration: underline;
+}
+.attachment-thumbs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.attachment-thumb {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.attachment-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.attachment-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.attachment-add {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 1.5px dashed var(--border);
+  background: var(--bg-sunken);
+  color: var(--text-soft);
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.attachment-add:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.attachment-add:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* emoji picker */

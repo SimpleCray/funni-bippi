@@ -30,7 +30,7 @@ interface ChatPanelProps {
   onReact: (id: string, emoji: string) => void;
   onNext: () => void;
   onTogglePanel: () => void;
-  onImageUpload?: (file: File) => void;
+  onImagesSend?: (files: File[]) => void;
   isUploading?: boolean;
 }
 
@@ -45,7 +45,7 @@ export function ChatPanel({
   onReact,
   onNext,
   onTogglePanel,
-  onImageUpload,
+  onImagesSend,
   isUploading,
 }: ChatPanelProps) {
   const msgsRef = useRef<HTMLDivElement>(null);
@@ -118,7 +118,7 @@ export function ChatPanel({
             <ComposerBar
               onSend={onSend}
               onTyping={onTyping}
-              onImageUpload={onImageUpload}
+              onImagesSend={onImagesSend}
               isUploading={isUploading}
             />
           </div>

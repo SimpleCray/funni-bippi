@@ -1,5 +1,10 @@
 const BE = process.env.NEXT_PUBLIC_BE_URL ?? 'http://localhost:3001';
 
+export function resolveImageUrl(imageUrl: string): string {
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+  return `${BE}${imageUrl}`;
+}
+
 export interface SessionResponse {
   sessionId: string;
   userId: string;
@@ -21,5 +26,5 @@ export async function uploadImageFile(file: File, sessionId?: string | null): Pr
   });
   if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
   const { imageUrl } = (await res.json()) as { imageUrl: string };
-  return `${BE}${imageUrl}`;
+  return imageUrl;
 }

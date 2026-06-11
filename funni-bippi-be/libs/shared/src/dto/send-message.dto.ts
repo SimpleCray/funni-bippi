@@ -3,7 +3,7 @@ import {
   IsUUID,
   MaxLength,
   IsOptional,
-  IsUrl,
+  Matches,
 } from 'class-validator';
 
 export class SendMessageDto {
@@ -23,7 +23,7 @@ export class SendMessageDto {
 
 export class SendImageDto {
   @IsString()
-  @IsUrl()
+  @Matches(/^\/files\/[\w.-]+$/)
   imageUrl: string;
 
   @IsString()

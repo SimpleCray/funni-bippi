@@ -19,7 +19,8 @@ interface MobileChatScreenProps {
   onReact: (id: string, emoji: string) => void;
   onNext: () => void;
   onReport: () => void;
-  onImageUpload?: (file: File) => void;
+  onImagesSend?: (files: File[]) => void;
+  isUploading?: boolean;
   openSettings: () => void;
   accent?: AccentColor;
   theme?: Theme;
@@ -35,7 +36,8 @@ export function MobileChatScreen({
   onReact,
   onNext,
   onReport,
-  onImageUpload,
+  onImagesSend,
+  isUploading,
   openSettings,
 }: MobileChatScreenProps) {
   const msgsRef = useRef<HTMLDivElement>(null);
@@ -116,7 +118,8 @@ export function MobileChatScreen({
             <ComposerBar
               onSend={onSend}
               onTyping={onTyping}
-              onImageUpload={onImageUpload}
+              onImagesSend={onImagesSend}
+              isUploading={isUploading}
               compact
             />
           </div>

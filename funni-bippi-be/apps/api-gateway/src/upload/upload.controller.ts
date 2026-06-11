@@ -17,6 +17,13 @@ const uploadDir =
   (process.platform === 'win32' ? 'C:/tmp/uploads' : '/tmp/uploads');
 if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
+const MIME_EXT: Record<string, string> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+};
+
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
@@ -27,7 +34,8 @@ export class UploadController {
       storage: diskStorage({
         destination: uploadDir,
         filename: (_req, file, cb) => {
-          const ext = extname(file.originalname);
+          let ext = extname(file.originalname);
+          if (!ext) ext = MIME_EXT[file.mimetype] ?? '.png';
           cb(null, `${uuid()}${ext}`);
         },
       }),

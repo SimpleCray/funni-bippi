@@ -25,7 +25,7 @@ interface ChatScreenProps {
   onNext: () => void;
   onReport: () => void;
   onTogglePanel: () => void;
-  onImageUpload?: (file: File) => void;
+  onImagesSend?: (files: File[]) => void;
   isUploading?: boolean;
 }
 
@@ -49,7 +49,7 @@ export function ChatScreen({
   onNext,
   onReport,
   onTogglePanel,
-  onImageUpload,
+  onImagesSend,
   isUploading,
 }: ChatScreenProps) {
   return (
@@ -75,7 +75,7 @@ export function ChatScreen({
         onReact={onReact}
         onNext={onNext}
         onTogglePanel={onTogglePanel}
-        onImageUpload={onImageUpload}
+        onImagesSend={onImagesSend}
         isUploading={isUploading}
       />
       {stranger && (

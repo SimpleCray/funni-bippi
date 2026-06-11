@@ -1,32 +1,41 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { IcSmile, IcClip, IcSend } from '@/components/ui/icons';
 import { EMOJI } from '@/lib/icebreakers';
+import { normalizeImageFile } from '@/lib/imageFile';
 
 interface ComposerBarProps {
   onSend: (text: string) => void;
   onTyping?: (typing: boolean) => void;
-  onImageUpload?: (file: File) => void;
+  onImagesSend?: (files: File[]) => void;
   isUploading?: boolean;
   compact?: boolean;
 }
 
-const ACCEPTED = 'image/jpeg,image/png,image/gif,image/webp';
+const MAX_IMAGES = 5;
+
+type PendingImage = { id: string; file: File; preview: string };
 
 export function ComposerBar({
   onSend,
   onTyping,
-  onImageUpload,
+  onImagesSend,
   isUploading,
   compact = false,
 }: ComposerBarProps) {
   const [val, setVal] = useState('');
   const [focus, setFocus] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [pending, setPending] = useState<PendingImage[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const pendingRef = useRef(pending);
+
+  useEffect(() => {
+    pendingRef.current = pending;
+  }, [pending]);
 
   useEffect(() => {
     if (!emojiOpen) return;
@@ -40,12 +49,53 @@ export function ComposerBar({
     return () => document.removeEventListener('mousedown', handler);
   }, [emojiOpen]);
 
+  useEffect(() => {
+    return () => {
+      pendingRef.current.forEach((p) => URL.revokeObjectURL(p.preview));
+    };
+  }, []);
+
+  const addImage = useCallback(async (raw: File) => {
+    const file = await normalizeImageFile(raw);
+    if (!file) return;
+    const preview = URL.createObjectURL(file);
+    setPending((prev) => {
+      if (prev.length >= MAX_IMAGES) {
+        URL.revokeObjectURL(preview);
+        return prev;
+      }
+      return [...prev, { id: crypto.randomUUID(), file, preview }];
+    });
+  }, []);
+
+  function removeImage(id: string) {
+    setPending((prev) => {
+      const item = prev.find((p) => p.id === id);
+      if (item) URL.revokeObjectURL(item.preview);
+      return prev.filter((p) => p.id !== id);
+    });
+  }
+
+  function clearAll() {
+    setPending((prev) => {
+      prev.forEach((p) => URL.revokeObjectURL(p.preview));
+      return [];
+    });
+  }
+
   function submit() {
     const t = val.trim();
-    if (!t) return;
-    onSend(t);
-    setVal('');
-    onTyping?.(false);
+    const files = pending.map((p) => p.file);
+    if (!t && files.length === 0) return;
+    if (t) {
+      onSend(t);
+      setVal('');
+      onTyping?.(false);
+    }
+    if (files.length > 0 && onImagesSend) {
+      onImagesSend(files);
+      clearAll();
+    }
     setEmojiOpen(false);
     inputRef.current?.focus();
   }
@@ -56,10 +106,27 @@ export function ComposerBar({
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file && onImageUpload) onImageUpload(file);
+    const files = e.target.files;
+    if (files) {
+      for (const file of files) addImage(file);
+    }
     e.target.value = '';
   }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) addImage(file);
+        break;
+      }
+    }
+  }
+
+  const canSend = (val.trim().length > 0 || pending.length > 0) && !isUploading;
 
   return (
     <div style={{ position: 'relative' }}>
@@ -92,7 +159,8 @@ export function ComposerBar({
       <input
         ref={fileRef}
         type='file'
-        accept={ACCEPTED}
+        accept='image/jpeg,image/png,image/gif,image/webp'
+        multiple
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
@@ -111,7 +179,7 @@ export function ComposerBar({
             className='icon-btn round'
             style={{ width: 38, height: 38 }}
             title={isUploading ? 'Uploading…' : 'Attach image'}
-            disabled={isUploading}
+            disabled={isUploading || pending.length >= MAX_IMAGES}
             onClick={() => fileRef.current?.click()}
           >
             {isUploading ? <span style={{ fontSize: 14 }}>⏳</span> : <IcClip size={20} />}
@@ -124,19 +192,55 @@ export function ComposerBar({
           onChange={(e) => handleChange(e.target.value)}
           onFocus={() => setFocus(true)}
           onBlur={() => setFocus(false)}
+          onPaste={handlePaste}
           onKeyDown={(e) => {
             if (e.key === 'Enter') submit();
           }}
         />
-        <button
-          className='send-btn pulse-hover'
-          onClick={submit}
-          disabled={!val.trim()}
-          title='Send'
-        >
+        <button className='send-btn pulse-hover' onClick={submit} disabled={!canSend} title='Send'>
           <IcSend size={20} />
         </button>
       </div>
+
+      {pending.length > 0 && (
+        <div className='attachment-strip'>
+          <div className='attachment-header'>
+            <span>
+              {pending.length} image{pending.length > 1 ? 's' : ''}
+            </span>
+            <button type='button' onClick={clearAll}>
+              Clear all
+            </button>
+          </div>
+          <div className='attachment-thumbs'>
+            {pending.map((p) => (
+              <div key={p.id} className='attachment-thumb'>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.preview} alt='' />
+                <button
+                  type='button'
+                  className='attachment-remove'
+                  onClick={() => removeImage(p.id)}
+                  title='Remove'
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {pending.length < MAX_IMAGES && (
+              <button
+                type='button'
+                className='attachment-add'
+                onClick={() => fileRef.current?.click()}
+                disabled={isUploading}
+                title='Add image'
+              >
+                +
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

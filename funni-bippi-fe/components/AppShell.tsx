@@ -90,10 +90,15 @@ export default function AppShell() {
     handleNext();
   }
 
-  async function handleImageUpload(file: File) {
-    const url = await uploadImage(file);
-    if (url) sendImage(url);
-    else flashToast('❌', 'Upload failed. Try again.');
+  async function handleImagesSend(files: File[]) {
+    for (const file of files) {
+      const url = await uploadImage(file);
+      if (url) sendImage(url);
+      else {
+        flashToast('❌', 'Upload failed. Try again.');
+        break;
+      }
+    }
   }
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -129,7 +134,7 @@ export default function AppShell() {
     onNext: handleNext,
     onReport: handleReport,
     onTogglePanel: () => setRightOpen((o) => !o),
-    onImageUpload: handleImageUpload,
+    onImagesSend: handleImagesSend,
     isUploading,
   };
 
