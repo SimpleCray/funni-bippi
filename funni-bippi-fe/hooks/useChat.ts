@@ -21,16 +21,16 @@ export function useChat() {
   });
 
   const sendMessage = useCallback((text: string) => {
-    const { roomId, addMessage } = useChatStore.getState();
-    if (!roomId || !text.trim()) return;
+    const { roomId, addMessage, isConnected } = useChatStore.getState();
+    if (!roomId || !isConnected || !text.trim()) return;
     const messageId = uuid();
     addMessage({ id: messageId, from: 'me', text, time: fmtTime() });
     socket.emit('chat:message', { text, roomId, messageId });
   }, []);
 
   const sendImage = useCallback((imageUrl: string) => {
-    const { roomId, addMessage } = useChatStore.getState();
-    if (!roomId) return;
+    const { roomId, addMessage, isConnected } = useChatStore.getState();
+    if (!roomId || !isConnected) return;
     const messageId = uuid();
     addMessage({ id: messageId, from: 'me', imageUrl, time: fmtTime() });
     socket.emit('chat:image', { imageUrl, roomId, messageId });
@@ -57,8 +57,8 @@ export function useChat() {
   );
 
   const emitTyping = useCallback((typing: boolean) => {
-    const { roomId } = useChatStore.getState();
-    if (!roomId || typing === isTyping.current) return;
+    const { roomId, isConnected } = useChatStore.getState();
+    if (!roomId || !isConnected || typing === isTyping.current) return;
     isTyping.current = typing;
     socket.emit('chat:typing', { roomId, typing });
   }, []);

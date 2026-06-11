@@ -12,8 +12,10 @@ interface ChatStore {
   roomId: string | null;
   sessionId: string | null;
   userId: string | null;
+  isConnected: boolean;
   setScreen: (s: Screen) => void;
   setStranger: (s: Stranger | null) => void;
+  setConnected: (connected: boolean) => void;
   addMessage: (m: Message) => void;
   setTyping: (t: boolean) => void;
   setFilter: (f: Filter) => void;
@@ -34,8 +36,10 @@ export const useChatStore = create<ChatStore>()((set) => ({
   roomId: null,
   sessionId: null,
   userId: null,
+  isConnected: false,
   setScreen: (screen) => set({ screen }),
   setStranger: (stranger) => set({ stranger }),
+  setConnected: (connected) => set({ isConnected: connected }),
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
   setTyping: (typing) => set({ typing }),
   setFilter: (filter) => set({ filter }),
@@ -52,5 +56,6 @@ export const useChatStore = create<ChatStore>()((set) => ({
     set((s) => ({
       messages: s.messages.map((m) => (m.id === id ? { ...m, reaction } : m)),
     })),
-  resetChat: () => set({ stranger: null, messages: [], typing: false, roomId: null }),
+  resetChat: () =>
+    set({ stranger: null, messages: [], typing: false, roomId: null, isConnected: false }),
 }));

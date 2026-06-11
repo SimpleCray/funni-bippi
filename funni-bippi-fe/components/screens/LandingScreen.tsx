@@ -86,7 +86,7 @@ export function LandingScreen({
 
       <header className='landing-top'>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-          <LogoMascot size={40} />
+          <Logo size={40} />
           <span className='wordmark' style={{ fontSize: 21 }}>
             Funni Bippi
           </span>

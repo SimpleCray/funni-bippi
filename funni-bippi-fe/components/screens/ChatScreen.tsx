@@ -27,6 +27,7 @@ interface ChatScreenProps {
   onTogglePanel: () => void;
   onImagesSend?: (files: File[]) => void;
   isUploading?: boolean;
+  isConnected: boolean;
 }
 
 export function ChatScreen({
@@ -51,6 +52,7 @@ export function ChatScreen({
   onTogglePanel,
   onImagesSend,
   isUploading,
+  isConnected,
 }: ChatScreenProps) {
   return (
     <div className='layout'>
@@ -66,6 +68,7 @@ export function ChatScreen({
       />
       <ChatPanel
         stranger={stranger}
+        isConnected={isConnected}
         messages={messages}
         typing={typing}
         nav={nav}

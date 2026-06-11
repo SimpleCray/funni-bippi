@@ -20,9 +20,10 @@ export function useSocket(onToast: (icon: string, text: string) => void) {
     const store = useChatStore.getState;
 
     socket.on('match:found', ({ roomId, stranger }: { roomId: string; stranger: Stranger }) => {
-      const { setRoomId, setStranger, setScreen } = store();
+      const { setRoomId, setStranger, setConnected, setScreen } = store();
       setRoomId(roomId);
       setStranger(stranger);
+      setConnected(true);
       setScreen('chat');
       fireConfetti();
       toastRef.current('✨', 'You matched! Say hi 👋');
@@ -57,12 +58,17 @@ export function useSocket(onToast: (icon: string, text: string) => void) {
 
     socket.on('chat:stranger_left', () => {
       store().setTyping(false);
+      store().setConnected(false);
       store().addMessage({
         id: uuid(),
         from: 'them',
         text: '👋 Stranger has left the chat.',
         time: fmtTime(),
       });
+    });
+
+    socket.on('disconnect', () => {
+      store().setConnected(false);
     });
 
     socket.on('error:no_match', ({ reason }: { reason: string }) => {

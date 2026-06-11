@@ -129,7 +129,7 @@ export function MobileChatScreen({
           {stranger && (
             <div className='panel-card' style={{ width: '90%', maxWidth: 360 }}>
               <div className='big-ava'>
-                <Avatar stranger={stranger} size={80} online />
+                <Avatar stranger={stranger} size={80} />
               </div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20 }}>
                 {stranger.name}

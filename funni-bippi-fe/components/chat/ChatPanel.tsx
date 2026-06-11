@@ -21,6 +21,7 @@ const ME: Stranger = {
 
 interface ChatPanelProps {
   stranger: Stranger | null;
+  isConnected: boolean;
   messages: Message[];
   typing: boolean;
   nav: 'chat' | 'profile';
@@ -36,6 +37,7 @@ interface ChatPanelProps {
 
 export function ChatPanel({
   stranger,
+  isConnected,
   messages,
   typing,
   nav,
@@ -58,15 +60,15 @@ export function ChatPanel({
   return (
     <div className='center'>
       <div className='chat-topbar'>
-        {stranger && <Avatar stranger={stranger} size={46} online />}
+        {stranger && <Avatar stranger={stranger} size={46} />}
         <div className='who'>
           <div className='name'>
             {stranger ? stranger.name : '—'}
             {stranger && <GenderBadge gender={stranger.gender} />}
           </div>
           <div className='sub'>
-            <span className='conn-live'>
-              <span className='blip' /> Connected
+            <span className={'conn-live' + (isConnected ? '' : ' disconnected')}>
+              <span className='blip' /> {isConnected ? 'Connected' : 'Disconnected'}
             </span>
             {' · anonymous chat'}
           </div>
@@ -91,7 +93,7 @@ export function ChatPanel({
           </div>
           <div className='panel-card' style={{ width: 320 }}>
             <div className='big-ava'>
-              <Avatar stranger={ME} size={80} online />
+              <Avatar stranger={ME} size={80} />
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20 }}>
               Anonymous You
@@ -120,6 +122,7 @@ export function ChatPanel({
               onTyping={onTyping}
               onImagesSend={onImagesSend}
               isUploading={isUploading}
+              disabled={!isConnected}
             />
           </div>
         </>

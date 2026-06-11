@@ -11,6 +11,7 @@ interface ComposerBarProps {
   onImagesSend?: (files: File[]) => void;
   isUploading?: boolean;
   compact?: boolean;
+  disabled?: boolean;
 }
 
 const MAX_IMAGES = 5;
@@ -23,6 +24,7 @@ export function ComposerBar({
   onImagesSend,
   isUploading,
   compact = false,
+  disabled = false,
 }: ComposerBarProps) {
   const [val, setVal] = useState('');
   const [focus, setFocus] = useState(false);
@@ -84,6 +86,7 @@ export function ComposerBar({
   }
 
   function submit() {
+    if (disabled) return;
     const t = val.trim();
     const files = pending.map((p) => p.file);
     if (!t && files.length === 0) return;
@@ -101,6 +104,7 @@ export function ComposerBar({
   }
 
   function handleChange(v: string) {
+    if (disabled) return;
     setVal(v);
     onTyping?.(v.length > 0);
   }
@@ -129,7 +133,7 @@ export function ComposerBar({
   const canSend = (val.trim().length > 0 || pending.length > 0) && !isUploading;
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', pointerEvents: disabled ? 'none' : undefined }}>
       {emojiOpen && (
         <div className='emoji-pop' ref={pickerRef}>
           {Object.entries(EMOJI).map(([cat, list]) => (
@@ -170,7 +174,8 @@ export function ComposerBar({
           className='icon-btn round emoji-trigger'
           style={{ width: 38, height: 38 }}
           onClick={() => setEmojiOpen((v) => !v)}
-          title='Emoji'
+          title={disabled ? 'Stranger left the chat' : 'Emoji'}
+          disabled={disabled}
         >
           <IcSmile size={21} />
         </button>
@@ -178,8 +183,10 @@ export function ComposerBar({
           <button
             className='icon-btn round'
             style={{ width: 38, height: 38 }}
-            title={isUploading ? 'Uploading…' : 'Attach image'}
-            disabled={isUploading || pending.length >= MAX_IMAGES}
+            title={
+              disabled ? 'Stranger left the chat' : isUploading ? 'Uploading…' : 'Attach image'
+            }
+            disabled={disabled || isUploading || pending.length >= MAX_IMAGES}
             onClick={() => fileRef.current?.click()}
           >
             {isUploading ? <span style={{ fontSize: 14 }}>⏳</span> : <IcClip size={20} />}
@@ -188,16 +195,22 @@ export function ComposerBar({
         <input
           ref={inputRef}
           value={val}
-          placeholder='Say something nice…'
+          placeholder={disabled ? 'Stranger has left the chat.' : 'Say something nice…'}
           onChange={(e) => handleChange(e.target.value)}
           onFocus={() => setFocus(true)}
           onBlur={() => setFocus(false)}
           onPaste={handlePaste}
+          disabled={disabled}
           onKeyDown={(e) => {
             if (e.key === 'Enter') submit();
           }}
         />
-        <button className='send-btn pulse-hover' onClick={submit} disabled={!canSend} title='Send'>
+        <button
+          className='send-btn pulse-hover'
+          onClick={submit}
+          disabled={disabled || !canSend}
+          title={disabled ? 'Stranger left the chat' : 'Send'}
+        >
           <IcSend size={20} />
         </button>
       </div>

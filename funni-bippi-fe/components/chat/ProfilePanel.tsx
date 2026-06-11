@@ -27,7 +27,7 @@ export function ProfilePanel({
       <div className='right-inner scroll'>
         <div className='panel-card'>
           <div className='big-ava'>
-            <Avatar stranger={stranger} size={84} online />
+            <Avatar stranger={stranger} size={84} />
           </div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20 }}>
             {stranger.name}

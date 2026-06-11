@@ -41,9 +41,6 @@ export function Sidebar({
       <div onClick={onLogo} title='Funni Bippi' style={{ cursor: 'pointer' }}>
         <Logo size={42} />
       </div>
-      <div style={{ position: 'relative' }}>
-        <Avatar stranger={ME} size={46} online />
-      </div>
       <div className='side-nav'>
         <button
           className={'icon-btn' + (nav === 'chat' ? ' active' : '')}
@@ -59,12 +56,9 @@ export function Sidebar({
         >
           <IcUser size={22} />
         </button>
-        <button className='icon-btn' onClick={openSettings} title='Settings'>
-          <IcSettings size={22} />
-        </button>
       </div>
       <div style={{ flex: 1 }} />
-      <div className='side-swatches'>
+      {/* <div className='side-swatches'>
         {ACCENT_COLORS.slice(0, 3).map((a) => (
           <span
             key={a.id}
@@ -74,7 +68,10 @@ export function Sidebar({
             title={a.id}
           />
         ))}
-      </div>
+      </div> */}
+      <button className='icon-btn' onClick={openSettings} title='Settings'>
+        <IcSettings size={22} />
+      </button>
       <div className='side-sep' />
       <button className='icon-btn round' onClick={toggleTheme} title='Toggle light / dark'>
         {theme === 'dark' ? <IcSun size={20} /> : <IcMoon size={20} />}
