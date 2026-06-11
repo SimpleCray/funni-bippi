@@ -21,6 +21,7 @@ interface ChatStore {
   setSessionId: (id: string | null) => void;
   setUserId: (id: string | null) => void;
   reactToMessage: (id: string, emoji: string) => void;
+  setMessageReaction: (id: string, reaction: string | undefined) => void;
   resetChat: () => void;
 }
 
@@ -46,6 +47,10 @@ export const useChatStore = create<ChatStore>()((set) => ({
       messages: s.messages.map((m) =>
         m.id === id ? { ...m, reaction: m.reaction === emoji ? undefined : emoji } : m,
       ),
+    })),
+  setMessageReaction: (id, reaction) =>
+    set((s) => ({
+      messages: s.messages.map((m) => (m.id === id ? { ...m, reaction } : m)),
     })),
   resetChat: () => set({ stranger: null, messages: [], typing: false, roomId: null }),
 }));

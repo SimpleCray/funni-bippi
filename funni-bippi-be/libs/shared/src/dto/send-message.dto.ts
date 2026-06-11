@@ -14,6 +14,11 @@ export class SendMessageDto {
   @IsString()
   @IsUUID()
   roomId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  messageId?: string;
 }
 
 export class SendImageDto {
@@ -24,6 +29,11 @@ export class SendImageDto {
   @IsString()
   @IsUUID()
   roomId: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUUID()
+  messageId?: string;
 }
 
 export class TypingDto {
@@ -49,4 +59,18 @@ export class ReportDto {
   @IsString()
   @IsOptional()
   reason?: string;
+}
+
+export class ReactionDto {
+  @IsString()
+  @IsUUID()
+  messageId: string;
+
+  @IsString()
+  @IsUUID()
+  roomId: string;
+
+  @IsString()
+  @MaxLength(8)
+  emoji: string;
 }

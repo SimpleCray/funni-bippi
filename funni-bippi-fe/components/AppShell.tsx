@@ -19,8 +19,7 @@ import type { AccentColor, IcebreakerItem } from '@/types';
 
 export default function AppShell() {
   const { theme, accent, setTheme, setAccent } = useTheme();
-  const { screen, setScreen, stranger, messages, typing, setTyping, reactToMessage, resetChat } =
-    useChatStore();
+  const { screen, setScreen, stranger, messages, typing, setTyping, resetChat } = useChatStore();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState<{ icon: string; text: string } | null>(null);
@@ -34,6 +33,7 @@ export default function AppShell() {
   const {
     sendMessage,
     sendImage,
+    sendReaction,
     uploadImage,
     emitTypingDebounced,
     nextStranger,
@@ -125,7 +125,7 @@ export default function AppShell() {
     onLogo: handleGoHome,
     onSend: sendMessage,
     onTyping: emitTypingDebounced,
-    onReact: reactToMessage,
+    onReact: sendReaction,
     onNext: handleNext,
     onReport: handleReport,
     onTogglePanel: () => setRightOpen((o) => !o),

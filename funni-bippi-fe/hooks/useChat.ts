@@ -23,15 +23,26 @@ export function useChat() {
   const sendMessage = useCallback((text: string) => {
     const { roomId, addMessage } = useChatStore.getState();
     if (!roomId || !text.trim()) return;
-    addMessage({ id: uuid(), from: 'me', text, time: fmtTime() });
-    socket.emit('chat:message', { text, roomId });
+    const messageId = uuid();
+    addMessage({ id: messageId, from: 'me', text, time: fmtTime() });
+    socket.emit('chat:message', { text, roomId, messageId });
   }, []);
 
   const sendImage = useCallback((imageUrl: string) => {
     const { roomId, addMessage } = useChatStore.getState();
     if (!roomId) return;
-    addMessage({ id: uuid(), from: 'me', imageUrl, time: fmtTime() });
-    socket.emit('chat:image', { imageUrl, roomId });
+    const messageId = uuid();
+    addMessage({ id: messageId, from: 'me', imageUrl, time: fmtTime() });
+    socket.emit('chat:image', { imageUrl, roomId, messageId });
+  }, []);
+
+  const sendReaction = useCallback((messageId: string, emoji: string) => {
+    const { roomId, messages, reactToMessage } = useChatStore.getState();
+    if (!roomId) return;
+    const current = messages.find((m) => m.id === messageId)?.reaction;
+    const next = current === emoji ? '' : emoji;
+    reactToMessage(messageId, emoji);
+    socket.emit('chat:reaction', { messageId, roomId, emoji: next });
   }, []);
 
   const uploadImage = useCallback(
@@ -82,6 +93,7 @@ export function useChat() {
   return {
     sendMessage,
     sendImage,
+    sendReaction,
     uploadImage,
     emitTypingDebounced,
     nextStranger,

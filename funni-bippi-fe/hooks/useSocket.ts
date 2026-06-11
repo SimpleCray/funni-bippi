@@ -32,13 +32,28 @@ export function useSocket(onToast: (icon: string, text: string) => void) {
       store().addMessage({ ...message, from: 'them' });
     });
 
-    socket.on('chat:image', ({ imageUrl, time }: { imageUrl: string; time: string }) => {
-      store().addMessage({ id: uuid(), from: 'them', imageUrl, time: time ?? fmtTime() });
-    });
+    socket.on(
+      'chat:image',
+      ({ messageId, imageUrl, time }: { messageId: string; imageUrl: string; time: string }) => {
+        store().addMessage({
+          id: messageId,
+          from: 'them',
+          imageUrl,
+          time: time ?? fmtTime(),
+        });
+      },
+    );
 
     socket.on('chat:typing', ({ typing }: { typing: boolean }) => {
       store().setTyping(typing);
     });
+
+    socket.on(
+      'chat:reaction',
+      ({ messageId, emoji }: { messageId: string; emoji: string | null }) => {
+        store().setMessageReaction(messageId, emoji || undefined);
+      },
+    );
 
     socket.on('chat:stranger_left', () => {
       store().setTyping(false);

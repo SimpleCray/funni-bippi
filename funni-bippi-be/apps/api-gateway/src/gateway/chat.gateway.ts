@@ -16,6 +16,20 @@ import {
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { Server, Socket } from 'socket.io';
+import {
+  SessionGuard,
+  JoinQueueDto,
+  SendMessageDto,
+  SendImageDto,
+  TypingDto,
+  ReactionDto,
+  LeaveRoomDto,
+  ReportDto,
+  KafkaTopics,
+  GatewayBroadcastPayload,
+} from '@app/shared';
+import { AuthService } from '../auth/auth.service';
+import { v4 as uuid } from 'uuid';
 
 interface SocketData {
   userId: string;
@@ -28,20 +42,6 @@ type TypedSocket = Socket<
   Record<string, never>,
   SocketData
 >;
-
-import {
-  SessionGuard,
-  JoinQueueDto,
-  SendMessageDto,
-  SendImageDto,
-  TypingDto,
-  LeaveRoomDto,
-  ReportDto,
-  KafkaTopics,
-  GatewayBroadcastPayload,
-} from '@app/shared';
-import { AuthService } from '../auth/auth.service';
-import { v4 as uuid } from 'uuid';
 
 @WebSocketGateway({
   cors: {
@@ -58,6 +58,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @Inject('KAFKA_CLIENT') private readonly kafka: ClientKafka,
     private readonly authService: AuthService,
   ) {}
+
+  private resolveMessageId(messageId?: string): string {
+    return messageId ?? uuid();
+  }
 
   async handleConnection(client: TypedSocket) {
     const sessionId = client.handshake.auth?.sessionId as string;
@@ -122,7 +126,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       fromUserId: client.data.userId,
       fromSocketId: client.id,
       text: dto.text,
-      messageId: uuid(),
+      messageId: this.resolveMessageId(dto.messageId),
       timestamp: Date.now(),
     });
   }
@@ -139,7 +143,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       fromUserId: client.data.userId,
       fromSocketId: client.id,
       imageUrl: dto.imageUrl,
-      messageId: uuid(),
+      messageId: this.resolveMessageId(dto.messageId),
       timestamp: Date.now(),
     });
   }
@@ -152,6 +156,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() dto: TypingDto,
   ) {
     client.to(dto.roomId).emit('chat:typing', { typing: dto.typing ?? true });
+  }
+
+  @UseGuards(SessionGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  @SubscribeMessage('chat:reaction')
+  handleReaction(
+    @ConnectedSocket() client: TypedSocket,
+    @MessageBody() dto: ReactionDto,
+  ) {
+    client.to(dto.roomId).emit('chat:reaction', {
+      messageId: dto.messageId,
+      emoji: dto.emoji || null,
+    });
   }
 
   @UseGuards(SessionGuard)
@@ -188,7 +205,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (payload.type === 'join-room' && payload.socketIds && payload.roomId) {
       for (const sid of payload.socketIds) {
         const sock = this.server.sockets.sockets.get(sid);
-        if (sock) sock.join(payload.roomId);
+        if (sock) void sock.join(payload.roomId);
       }
     } else if (
       payload.type === 'emit-to-socket' &&

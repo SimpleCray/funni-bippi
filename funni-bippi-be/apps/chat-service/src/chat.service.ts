@@ -100,6 +100,7 @@ export class ChatService implements OnModuleInit {
         : undefined,
       event: 'chat:image',
       data: {
+        messageId: payload.messageId,
         imageUrl: payload.imageUrl,
         time: new Date(payload.timestamp).toLocaleTimeString([], {
           hour: 'numeric',

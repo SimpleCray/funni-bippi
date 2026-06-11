@@ -47,7 +47,7 @@ export function ProfilePanel({
               marginTop: 14,
             }}
           >
-            {stranger.interests.map((it, i) => (
+            {stranger.interests?.map((it, i) => (
               <span
                 key={i}
                 style={{
