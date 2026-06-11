@@ -166,35 +166,63 @@ function App() {
   /* ---------- DESKTOP CHAT ---------- */
   function DesktopChat() {
     return (
-      <div className="layout">
-        <Sidebar me={ME} nav={nav} setNav={setNav} accent={accent} setAccent={setAccent}
-                 theme={theme} toggleTheme={toggleTheme} onLogo={goHome} openSettings={() => setSettingsOpen(true)} />
-        <div className="center">
-          <div className="chat-topbar">
+      <div className='layout'>
+        <Sidebar
+          me={ME}
+          nav={nav}
+          setNav={setNav}
+          accent={accent}
+          setAccent={setAccent}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          onLogo={goHome}
+          openSettings={() => setSettingsOpen(true)}
+        />
+        <div className='center'>
+          <div className='chat-topbar'>
             {stranger && <Avatar stranger={stranger} size={46} online />}
-            <div className="who">
-              <div className="name">{stranger ? stranger.name : "—"} {stranger && <GenderBadge g={stranger.gender} />}</div>
-              <div className="sub"><span className="conn-live"><span className="blip" /> Connected</span> · anonymous chat</div>
+            <div className='who'>
+              <div className='name'>
+                {stranger ? stranger.name : '—'} {stranger && <GenderBadge g={stranger.gender} />}
+              </div>
+              <div className='sub'>
+                <span className='conn-live'>
+                  <span className='blip' /> Connected
+                </span>{' '}
+                · anonymous chat
+              </div>
             </div>
             <div style={{ flex: 1 }} />
-            <button className="btn btn-soft" onClick={nextStranger}><IcShuffle size={16} /> Next stranger</button>
-            <button className="icon-btn" onClick={() => setRightOpen(o => !o)} title="Toggle profile panel"><IcPanel size={21} /></button>
+            <button className='btn btn-soft' onClick={nextStranger}>
+              <IcShuffle size={16} /> Next stranger
+            </button>
+            <button className='icon-btn' onClick={() => setRightOpen((o) => !o)} title='Toggle profile panel'>
+              <IcPanel size={21} />
+            </button>
           </div>
 
-          {nav === "profile" ? <ProfileView /> : (
+          {nav === 'profile' ? (
+            <ProfileView />
+          ) : (
             <>
-              <div className="msgs scroll" ref={msgsRef}>
-                <div className="day-pill">Today · you're now chatting 🎉</div>
-                {messages.map(m => <Bubble key={m.id} m={m} onReact={react} />)}
+              <div className='msgs scroll' ref={msgsRef}>
+                <div className='day-pill'>Say hello to your new friend 🎉</div>
+                {messages.map((m) => (
+                  <Bubble key={m.id} m={m} onReact={react} />
+                ))}
                 {typing && stranger && <Typing stranger={stranger} />}
               </div>
-              <div className="composer"><Composer onSend={send} /></div>
+              <div className='composer'>
+                <Composer onSend={send} />
+              </div>
             </>
           )}
         </div>
 
-        <div className={"right" + (rightOpen ? "" : " collapsed")}>
-          {stranger && <ProfilePanel stranger={stranger} onNext={nextStranger} onReport={report} onUseIce={send} ices={ices} />}
+        <div className={'right' + (rightOpen ? '' : ' collapsed')}>
+          {stranger && (
+            <ProfilePanel stranger={stranger} onNext={nextStranger} onReport={report} onUseIce={send} ices={ices} />
+          )}
         </div>
       </div>
     );

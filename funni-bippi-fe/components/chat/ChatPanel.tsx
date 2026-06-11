@@ -75,7 +75,7 @@ export function ChatPanel({
         </div>
         <div style={{ flex: 1 }} />
         <button className='btn btn-soft' onClick={onNext}>
-          <IcShuffle size={16} /> Next stranger
+          <IcShuffle size={16} /> Next
         </button>
         <button className='icon-btn' onClick={onTogglePanel} title='Toggle profile panel'>
           <IcPanel size={21} />
@@ -110,7 +110,7 @@ export function ChatPanel({
       ) : (
         <>
           <div className='msgs scroll' ref={msgsRef}>
-            <div className='day-pill'>Today · you&apos;re now chatting 🎉</div>
+            <div className='day-pill'>Say hello to your new friend 🎉</div>
             {messages.map((m) => (
               <MessageBubble key={m.id} message={m} stranger={stranger} onReact={onReact} />
             ))}
@@ -123,6 +123,7 @@ export function ChatPanel({
               onImagesSend={onImagesSend}
               isUploading={isUploading}
               disabled={!isConnected}
+              stranger={stranger}
             />
           </div>
         </>

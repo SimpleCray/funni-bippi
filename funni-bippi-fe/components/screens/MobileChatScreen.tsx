@@ -21,6 +21,7 @@ interface MobileChatScreenProps {
   onReport: () => void;
   onImagesSend?: (files: File[]) => void;
   isUploading?: boolean;
+  isConnected: boolean;
   openSettings: () => void;
   accent?: AccentColor;
   theme?: Theme;
@@ -38,6 +39,7 @@ export function MobileChatScreen({
   onReport,
   onImagesSend,
   isUploading,
+  isConnected,
   openSettings,
 }: MobileChatScreenProps) {
   const msgsRef = useRef<HTMLDivElement>(null);
@@ -72,7 +74,7 @@ export function MobileChatScreen({
         <>
           {/* Messages */}
           <div className='m-msgs scroll' ref={msgsRef}>
-            <div className='day-pill'>Today · you&apos;re now chatting 🎉</div>
+            <div className='day-pill'>Say hello to your new friend 🎉</div>
             {messages.map((m) => (
               <MessageBubble key={m.id} message={m} stranger={stranger} onReact={onReact} />
             ))}
@@ -121,6 +123,8 @@ export function MobileChatScreen({
               onImagesSend={onImagesSend}
               isUploading={isUploading}
               compact
+              disabled={!isConnected}
+              stranger={stranger}
             />
           </div>
         </>

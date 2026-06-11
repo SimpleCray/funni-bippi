@@ -5,6 +5,8 @@ import { IcSmile, IcClip, IcSend } from '@/components/ui/icons';
 import { EMOJI } from '@/lib/icebreakers';
 import { normalizeImageFile } from '@/lib/imageFile';
 
+import type { Stranger } from '@/types';
+
 interface ComposerBarProps {
   onSend: (text: string) => void;
   onTyping?: (typing: boolean) => void;
@@ -12,6 +14,7 @@ interface ComposerBarProps {
   isUploading?: boolean;
   compact?: boolean;
   disabled?: boolean;
+  stranger?: Stranger | null;
 }
 
 const MAX_IMAGES = 5;
@@ -25,6 +28,7 @@ export function ComposerBar({
   isUploading,
   compact = false,
   disabled = false,
+  stranger,
 }: ComposerBarProps) {
   const [val, setVal] = useState('');
   const [focus, setFocus] = useState(false);
@@ -174,7 +178,7 @@ export function ComposerBar({
           className='icon-btn round emoji-trigger'
           style={{ width: 38, height: 38 }}
           onClick={() => setEmojiOpen((v) => !v)}
-          title={disabled ? 'Stranger left the chat' : 'Emoji'}
+          title={disabled ? `${stranger?.name || 'Stranger'} left the chat` : 'Emoji'}
           disabled={disabled}
         >
           <IcSmile size={21} />
@@ -195,7 +199,9 @@ export function ComposerBar({
         <input
           ref={inputRef}
           value={val}
-          placeholder={disabled ? 'Stranger has left the chat.' : 'Say something nice…'}
+          placeholder={
+            disabled ? `${stranger?.name || 'Stranger'} has left the chat.` : 'Say something nice…'
+          }
           onChange={(e) => handleChange(e.target.value)}
           onFocus={() => setFocus(true)}
           onBlur={() => setFocus(false)}
@@ -209,7 +215,7 @@ export function ComposerBar({
           className='send-btn pulse-hover'
           onClick={submit}
           disabled={disabled || !canSend}
-          title={disabled ? 'Stranger left the chat' : 'Send'}
+          title={disabled ? `${stranger?.name || 'Stranger'} left the chat` : 'Send'}
         >
           <IcSend size={20} />
         </button>

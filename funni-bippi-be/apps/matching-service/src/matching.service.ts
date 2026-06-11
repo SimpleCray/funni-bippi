@@ -78,6 +78,19 @@ export class MatchingService implements OnModuleInit {
         const candidate = JSON.parse(raw) as QueueEntry;
         if (candidate.userId === joiner.userId) continue;
 
+        // Atomically verify the candidate still exists before removing both users
+        const candidateStillInQueue = await this.redis
+          .lrange(qKey, 0, -1)
+          .then((list) => list.some((entry) => entry === raw));
+
+        if (!candidateStillInQueue) {
+          // Race condition: candidate was already removed by another tryMatch
+          this.logger.debug(
+            `Candidate ${candidate.userId} already removed from queue`,
+          );
+          continue;
+        }
+
         await this.redis.lrem(qKey, 1, raw);
         await this.removeFromQueue(joiner.userId, joiner.gender);
 
@@ -86,7 +99,8 @@ export class MatchingService implements OnModuleInit {
         clearTimeout(this.timeouts.get(joiner.userId));
         this.timeouts.delete(joiner.userId);
 
-        await this.createMatch(joiner, candidate);
+        this.logger.log(`Match found: ${joiner.userId} ↔ ${candidate.userId}`);
+        this.createMatch(joiner, candidate);
         return true;
       }
     }
@@ -106,9 +120,14 @@ export class MatchingService implements OnModuleInit {
       const e = JSON.parse(raw) as QueueEntry;
       if (e.userId === userId) {
         await this.redis.lrem(QUEUES[gender], 1, raw);
+        this.logger.debug(`Removed user ${userId} from queue:${gender}`);
         return;
       }
     }
+    // User not found in queue (may have already been removed by concurrent tryMatch)
+    this.logger.debug(
+      `User ${userId} not found in queue:${gender} (already removed?)`,
+    );
   }
 
   private createMatch(user1: QueueEntry, user2: QueueEntry): void {
@@ -126,7 +145,7 @@ export class MatchingService implements OnModuleInit {
 
     this.kafka.emit(KafkaTopics.MATCH_FOUND, payload);
     this.logger.log(
-      `Match created: room ${roomId} (${user1.userId} ↔ ${user2.userId})`,
+      `Match created: room ${roomId} (${user1.userId} ↔ ${user2.userId}) | Stranger1: ${strangerForUser1.name} | Stranger2: ${strangerForUser2.name}`,
     );
   }
 
