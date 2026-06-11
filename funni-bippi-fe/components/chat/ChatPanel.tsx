@@ -89,10 +89,6 @@ export function ChatPanel({
           className='msgs scroll'
           style={{ alignItems: 'center', justifyContent: 'center', gap: 16 }}
         >
-          <Mascot size={96} />
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 24 }}>
-            This is you 👋
-          </div>
           <div className='panel-card' style={{ width: '90%', maxWidth: 360 }}>
             <div className='big-ava'>
               <Avatar stranger={me} size={80} />
