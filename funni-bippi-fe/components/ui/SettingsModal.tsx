@@ -2,7 +2,8 @@
 
 import { useSettingsStore } from '@/store/settingsStore';
 import { ACCENT_COLORS } from '@/lib/constants';
-import { IcClose, IcCheck, IcSparkle, IcSun, IcMoon, IcBell } from './icons';
+import { IcClose, IcCheck, IcSparkle, IcSun, IcMoon, IcBell, IcUser } from './icons';
+import { MyProfileFields } from '@/components/chat/MyProfileFields';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -43,6 +44,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           </button>
         </div>
         <div className='modal-body'>
+          <div className='set-group'>
+            <div className='set-title'>
+              <IcUser size={16} /> My profile
+            </div>
+            <MyProfileFields />
+          </div>
+
           <div className='set-group'>
             <div className='set-title'>
               <IcSparkle size={16} /> Theme color

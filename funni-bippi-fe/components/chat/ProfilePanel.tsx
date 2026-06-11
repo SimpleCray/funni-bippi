@@ -32,36 +32,22 @@ export function ProfilePanel({
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20 }}>
             {stranger.name}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0 4px' }}>
-            <GenderBadge gender={stranger.gender} />
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--text-soft)', marginTop: 8 }}>
-            {stranger.country}
-          </div>
           <div
             style={{
               display: 'flex',
-              flexWrap: 'wrap',
-              gap: 6,
               justifyContent: 'center',
-              marginTop: 14,
+              alignItems: 'center',
+              gap: 6,
+              flexWrap: 'wrap',
+              margin: '10px 0 4px',
             }}
           >
-            {stranger.interests?.map((it, i) => (
-              <span
-                key={i}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  padding: '5px 11px',
-                  borderRadius: 99,
-                  background: 'var(--accent-soft)',
-                  color: 'var(--accent-strong)',
-                }}
-              >
-                {it}
-              </span>
-            ))}
+            <GenderBadge gender={stranger.gender} />
+            <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>looking for</span>
+            <GenderBadge gender={stranger.interest} />
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--text-soft)', marginTop: 8 }}>
+            {stranger.country}
           </div>
         </div>
 

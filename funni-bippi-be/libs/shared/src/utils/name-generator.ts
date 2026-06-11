@@ -1,4 +1,4 @@
-import type { Gender, StrangerProfile } from '../types';
+import type { StrangerProfile, Gender, Interest } from '../types';
 
 const ADJECTIVES = [
   'Frosty',
@@ -67,11 +67,11 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function makeStranger(gender: Gender = 'everyone'): StrangerProfile {
+export function makeStranger(gender: Gender, interest: Interest): StrangerProfile {
   const adj = pick(ADJECTIVES);
   const animal = pick(ANIMALS);
   const name = `${adj}${animal}`;
   const grad = pick(GRAD_PAIRS);
   const glyph = name[0];
-  return { name, gender, grad, glyph };
+  return { name, gender, interest, grad, glyph };
 }

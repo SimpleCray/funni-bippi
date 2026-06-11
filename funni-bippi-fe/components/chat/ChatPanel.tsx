@@ -9,15 +9,8 @@ import { Avatar } from '@/components/ui/Avatar';
 import { GenderBadge } from '@/components/ui/GenderBadge';
 import { Mascot } from '@/components/brand/Mascot';
 import { IcShuffle, IcPanel, IcChat } from '@/components/ui/icons';
-
-const ME: Stranger = {
-  name: 'You',
-  grad: ['var(--accent)', 'var(--accent-2)'],
-  glyph: 'Y',
-  gender: 'any',
-  country: '',
-  interests: [],
-};
+import { MyProfileFields } from './MyProfileFields';
+import { useSettingsStore } from '@/store/settingsStore';
 
 interface ChatPanelProps {
   stranger: Stranger | null;
@@ -51,6 +44,15 @@ export function ChatPanel({
   isUploading,
 }: ChatPanelProps) {
   const msgsRef = useRef<HTMLDivElement>(null);
+  const { myGender, myInterest } = useSettingsStore();
+  const me: Stranger = {
+    name: 'You',
+    grad: ['var(--accent)', 'var(--accent-2)'],
+    glyph: 'Y',
+    gender: myGender,
+    interest: myInterest,
+    country: '',
+  };
 
   useEffect(() => {
     const el = msgsRef.current;
@@ -91,17 +93,21 @@ export function ChatPanel({
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 24 }}>
             This is you 👋
           </div>
-          <div className='panel-card' style={{ width: 320 }}>
+          <div className='panel-card' style={{ width: '90%', maxWidth: 360 }}>
             <div className='big-ava'>
-              <Avatar stranger={ME} size={80} />
+              <Avatar stranger={me} size={80} />
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20 }}>
-              Anonymous You
+              Anonymous
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-soft)', marginTop: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
+              <GenderBadge gender={myGender} />
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 16 }}>
               You appear to strangers with a fun random name each chat. No photos, no real name —
               just vibes.
             </div>
+            <MyProfileFields />
           </div>
           <button className='btn btn-ghost' onClick={() => setNav('chat')}>
             <IcChat size={17} /> Back to chat

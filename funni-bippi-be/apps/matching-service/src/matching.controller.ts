@@ -1,6 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { KafkaTopics } from '@app/shared';
+import type { Gender, Interest } from '@app/shared';
 import { MatchingService } from './matching.service';
 
 @Controller()
@@ -13,7 +14,8 @@ export class MatchingController {
     data: {
       userId: string;
       socketId: string;
-      gender: 'everyone' | 'male' | 'female';
+      gender: Gender;
+      interest: Interest;
     },
   ) {
     await this.matchingService.joinQueue(data);

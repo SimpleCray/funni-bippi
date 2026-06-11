@@ -1,8 +1,11 @@
-export type Gender = 'everyone' | 'male' | 'female';
+export type Gender = 'male' | 'female';
+
+export type Interest = 'everyone' | 'male' | 'female';
 
 export interface StrangerProfile {
   name: string;
   gender: Gender;
+  interest: Interest;
   grad: [string, string];
   glyph: string;
 }
@@ -11,6 +14,7 @@ export interface QueueEntry {
   userId: string;
   socketId: string;
   gender: Gender;
+  interest: Interest;
   joinedAt: number;
 }
 
@@ -27,7 +31,7 @@ export interface RoomData {
 export interface SessionData {
   userId: string;
   socketId: string | null;
-  gender: Gender;
+  interest: Interest;
   createdAt: number;
 }
 

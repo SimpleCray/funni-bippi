@@ -102,6 +102,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId: client.data.userId,
       socketId: client.id,
       gender: dto.gender,
+      interest: dto.interest,
     });
   }
 

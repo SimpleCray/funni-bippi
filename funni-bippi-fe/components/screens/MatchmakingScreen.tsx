@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Mascot } from '@/components/brand/Mascot';
 import { MATCHING_COPY } from '@/lib/constants';
-import { useChatStore } from '@/store/chatStore';
+import { useSettingsStore } from '@/store/settingsStore';
 
 interface MatchmakingScreenProps {
   onCancel: () => void;
@@ -11,14 +11,15 @@ interface MatchmakingScreenProps {
 
 export function MatchmakingScreen({ onCancel }: MatchmakingScreenProps) {
   const [copyIdx, setCopyIdx] = useState(0);
-  const { filter } = useChatStore();
+  const { myInterest } = useSettingsStore();
 
   useEffect(() => {
     const id = setInterval(() => setCopyIdx((v) => (v + 1) % MATCHING_COPY.length), 1400);
     return () => clearInterval(id);
   }, []);
 
-  const who = filter === 'everyone' ? 'anyone friendly' : filter === 'male' ? 'a guy' : 'a gal';
+  const who =
+    myInterest === 'everyone' ? 'anyone friendly' : myInterest === 'male' ? 'a guy' : 'a gal';
 
   return (
     <div className='match-screen fade-screen'>

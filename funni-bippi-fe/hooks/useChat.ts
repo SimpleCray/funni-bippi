@@ -4,6 +4,7 @@ import { useCallback, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import socket from '@/lib/socket';
 import { useChatStore } from '@/store/chatStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { uploadImageFile } from '@/lib/api';
 import { v4 as uuid } from 'uuid';
 
@@ -78,10 +79,14 @@ export function useChat() {
   );
 
   const nextStranger = useCallback(() => {
-    const { roomId, filter, sessionId } = useChatStore.getState();
+    const { roomId, sessionId } = useChatStore.getState();
+    const { myGender, myInterest } = useSettingsStore.getState();
     if (roomId) socket.emit('chat:next', { roomId });
     if (sessionId) {
-      setTimeout(() => socket.emit('user:join', { gender: filter, sessionId }), 200);
+      setTimeout(
+        () => socket.emit('user:join', { gender: myGender, interest: myInterest, sessionId }),
+        200,
+      );
     }
   }, []);
 

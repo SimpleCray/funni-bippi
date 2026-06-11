@@ -1,14 +1,13 @@
 'use client';
 
 import { create } from 'zustand';
-import type { Filter, Message, Screen, Stranger } from '@/types';
+import type { Message, Screen, Stranger } from '@/types';
 
 interface ChatStore {
   screen: Screen;
   stranger: Stranger | null;
   messages: Message[];
   typing: boolean;
-  filter: Filter;
   roomId: string | null;
   sessionId: string | null;
   userId: string | null;
@@ -18,7 +17,6 @@ interface ChatStore {
   setConnected: (connected: boolean) => void;
   addMessage: (m: Message) => void;
   setTyping: (t: boolean) => void;
-  setFilter: (f: Filter) => void;
   setRoomId: (id: string | null) => void;
   setSessionId: (id: string | null) => void;
   setUserId: (id: string | null) => void;
@@ -32,7 +30,6 @@ export const useChatStore = create<ChatStore>()((set) => ({
   stranger: null,
   messages: [],
   typing: false,
-  filter: 'everyone',
   roomId: null,
   sessionId: null,
   userId: null,
@@ -42,7 +39,6 @@ export const useChatStore = create<ChatStore>()((set) => ({
   setConnected: (connected) => set({ isConnected: connected }),
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
   setTyping: (typing) => set({ typing }),
-  setFilter: (filter) => set({ filter }),
   setRoomId: (roomId) => set({ roomId }),
   setSessionId: (sessionId) => set({ sessionId }),
   setUserId: (userId) => set({ userId }),

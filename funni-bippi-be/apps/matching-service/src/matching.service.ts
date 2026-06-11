@@ -1,10 +1,10 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { RedisService, KafkaTopics, makeStranger } from '@app/shared';
-import type { Gender, QueueEntry, MatchFoundPayload } from '@app/shared';
+import type { Gender, Interest, QueueEntry, MatchFoundPayload } from '@app/shared';
 import { v4 as uuid } from 'uuid';
 
-const QUEUES: Record<Gender, string> = {
+const QUEUES: Record<Interest, string> = {
   everyone: 'queue:everyone',
   male: 'queue:male',
   female: 'queue:female',
@@ -30,16 +30,18 @@ export class MatchingService implements OnModuleInit {
     userId: string;
     socketId: string;
     gender: Gender;
+    interest: Interest;
   }): Promise<void> {
-    const { userId, socketId, gender } = entry;
+    const { userId, socketId, gender, interest } = entry;
     const payload: QueueEntry = {
       userId,
       socketId,
       gender,
+      interest,
       joinedAt: Date.now(),
     };
-    await this.redis.lpush(QUEUES[gender], JSON.stringify(payload));
-    this.logger.log(`User ${userId} joined queue:${gender}`);
+    await this.redis.lpush(QUEUES[interest], JSON.stringify(payload));
+    this.logger.log(`User ${userId} joined queue:${interest}`);
 
     const match = await this.tryMatch(payload);
     if (!match) {
@@ -70,7 +72,7 @@ export class MatchingService implements OnModuleInit {
   }
 
   private async tryMatch(joiner: QueueEntry): Promise<boolean> {
-    const searchQueues = this.getSearchQueues(joiner.gender);
+    const searchQueues = this.getSearchQueues(joiner.interest);
 
     for (const qKey of searchQueues) {
       const entries = await this.redis.lrange(qKey, 0, -1);
@@ -92,7 +94,7 @@ export class MatchingService implements OnModuleInit {
         }
 
         await this.redis.lrem(qKey, 1, raw);
-        await this.removeFromQueue(joiner.userId, joiner.gender);
+        await this.removeFromQueue(joiner.userId, joiner.interest);
 
         clearTimeout(this.timeouts.get(candidate.userId));
         this.timeouts.delete(candidate.userId);
@@ -107,33 +109,33 @@ export class MatchingService implements OnModuleInit {
     return false;
   }
 
-  private getSearchQueues(gender: Gender): string[] {
-    if (gender === 'everyone') {
+  private getSearchQueues(interest: Interest): string[] {
+    if (interest === 'everyone') {
       return [QUEUES.everyone, QUEUES.male, QUEUES.female];
     }
-    return [QUEUES[gender], QUEUES.everyone];
+    return [QUEUES[interest], QUEUES.everyone];
   }
 
-  private async removeFromQueue(userId: string, gender: Gender): Promise<void> {
-    const entries = await this.redis.lrange(QUEUES[gender], 0, -1);
+  private async removeFromQueue(userId: string, interest: Interest): Promise<void> {
+    const entries = await this.redis.lrange(QUEUES[interest], 0, -1);
     for (const raw of entries) {
       const e = JSON.parse(raw) as QueueEntry;
       if (e.userId === userId) {
-        await this.redis.lrem(QUEUES[gender], 1, raw);
-        this.logger.debug(`Removed user ${userId} from queue:${gender}`);
+        await this.redis.lrem(QUEUES[interest], 1, raw);
+        this.logger.debug(`Removed user ${userId} from queue:${interest}`);
         return;
       }
     }
     // User not found in queue (may have already been removed by concurrent tryMatch)
     this.logger.debug(
-      `User ${userId} not found in queue:${gender} (already removed?)`,
+      `User ${userId} not found in queue:${interest} (already removed?)`,
     );
   }
 
   private createMatch(user1: QueueEntry, user2: QueueEntry): void {
     const roomId = uuid();
-    const strangerForUser1 = makeStranger(user2.gender);
-    const strangerForUser2 = makeStranger(user1.gender);
+    const strangerForUser1 = makeStranger(user2.gender, user2.interest);
+    const strangerForUser2 = makeStranger(user1.gender, user1.interest);
 
     const payload: MatchFoundPayload = {
       roomId,

@@ -1,4 +1,4 @@
-import type { AccentColor, Filter } from '@/types';
+import type { AccentColor, Gender, Interest } from '@/types';
 
 export const SOCKET_EVENTS = {
   // Client → Server
@@ -26,8 +26,13 @@ export const ACCENT_COLORS: { id: AccentColor; grad: string; hex: string }[] = [
   { id: 'pink', grad: 'linear-gradient(135deg, #FF9EC8, #FF5E9E)', hex: '#FF5E9E' },
 ];
 
-export const GENDER_FILTERS: { id: Filter; label: string }[] = [
+export const INTEREST_OPTIONS: { id: Interest; label: string }[] = [
   { id: 'everyone', label: 'Everyone' },
+  { id: 'male', label: 'Male' },
+  { id: 'female', label: 'Female' },
+];
+
+export const MY_GENDER_OPTIONS: { id: Gender; label: string }[] = [
   { id: 'male', label: 'Male' },
   { id: 'female', label: 'Female' },
 ];

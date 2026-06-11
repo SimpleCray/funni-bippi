@@ -11,8 +11,8 @@ import {
   IcMoon,
   IcSettings,
 } from '@/components/ui/icons';
-import { useChatStore } from '@/store/chatStore';
-import { GENDER_FILTERS } from '@/lib/constants';
+import { useSettingsStore } from '@/store/settingsStore';
+import { INTEREST_OPTIONS, MY_GENDER_OPTIONS } from '@/lib/constants';
 import type { Theme } from '@/types';
 import { LogoMascot } from '../brand/LogoMascot';
 
@@ -25,7 +25,8 @@ interface LandingScreenProps {
   isSessionError?: boolean;
 }
 
-const FILTER_ICONS = { everyone: IcGlobe, male: IcMars, female: IcVenus };
+const INTEREST_ICONS = { everyone: IcGlobe, male: IcMars, female: IcVenus };
+const MY_GENDER_ICONS = { male: IcMars, female: IcVenus };
 
 export function LandingScreen({
   theme,
@@ -35,7 +36,7 @@ export function LandingScreen({
   disabled,
   isSessionError,
 }: LandingScreenProps) {
-  const { filter, setFilter } = useChatStore();
+  const { myGender, setMyGender, myInterest, setMyInterest } = useSettingsStore();
 
   return (
     <div className='landing fade-screen'>
@@ -128,17 +129,32 @@ export function LandingScreen({
                 ? 'Connecting…'
                 : 'Start Chatting ✨'}
           </button>
-          <div className='filter-label'>I&apos;d like to chat with</div>
+          <div className='filter-label'>I am a</div>
           <div className='seg'>
-            {GENDER_FILTERS.map((f) => {
-              const Icon = FILTER_ICONS[f.id];
+            {MY_GENDER_OPTIONS.map((g) => {
+              const Icon = MY_GENDER_ICONS[g.id];
               return (
                 <button
-                  key={f.id}
-                  className={filter === f.id ? 'on' : ''}
-                  onClick={() => setFilter(f.id)}
+                  key={g.id}
+                  className={myGender === g.id ? 'on' : ''}
+                  onClick={() => setMyGender(g.id)}
                 >
-                  <Icon size={15} /> {f.label}
+                  <Icon size={15} /> {g.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className='filter-label'>I&apos;d like to chat with</div>
+          <div className='seg'>
+            {INTEREST_OPTIONS.map((i) => {
+              const Icon = INTEREST_ICONS[i.id];
+              return (
+                <button
+                  key={i.id}
+                  className={myInterest === i.id ? 'on' : ''}
+                  onClick={() => setMyInterest(i.id)}
+                >
+                  <Icon size={15} /> {i.label}
                 </button>
               );
             })}

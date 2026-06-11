@@ -4,6 +4,7 @@ import { useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import socket from '@/lib/socket';
 import { useChatStore } from '@/store/chatStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { fetchSession } from '@/lib/api';
 
 export function useMatching() {
@@ -29,10 +30,11 @@ export function useMatching() {
   }, []);
 
   const startMatch = useCallback(() => {
-    const { sessionId, filter } = useChatStore.getState();
+    const { sessionId } = useChatStore.getState();
+    const { myGender, myInterest } = useSettingsStore.getState();
     if (!sessionId) return;
     connect(sessionId);
-    socket.emit('user:join', { gender: filter, sessionId });
+    socket.emit('user:join', { gender: myGender, interest: myInterest, sessionId });
   }, [connect]);
 
   const cancelMatch = useCallback(() => {

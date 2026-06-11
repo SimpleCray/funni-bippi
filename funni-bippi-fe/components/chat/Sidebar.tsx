@@ -10,9 +10,9 @@ const ME: Stranger = {
   name: 'You',
   grad: ['var(--accent)', 'var(--accent-2)'],
   glyph: 'Y',
-  gender: 'any',
+  gender: 'male',
+  interest: 'everyone',
   country: '',
-  interests: [],
 };
 
 interface SidebarProps {

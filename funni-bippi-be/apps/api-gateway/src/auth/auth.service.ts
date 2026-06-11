@@ -15,7 +15,7 @@ export class AuthService {
     const data: SessionData = {
       userId,
       socketId: null,
-      gender: 'everyone',
+      interest: 'everyone',
       createdAt: Date.now(),
     };
     await this.redis.set(

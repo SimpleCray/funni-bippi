@@ -138,8 +138,19 @@ export function MobileChatScreen({
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20 }}>
                 {stranger.name}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 6,
+                  flexWrap: 'wrap',
+                  margin: '10px 0',
+                }}
+              >
                 <GenderBadge gender={stranger.gender} />
+                <span style={{ fontSize: 12, color: 'var(--text-soft)' }}>looking for</span>
+                <GenderBadge gender={stranger.interest} />
               </div>
             </div>
           )}

@@ -1,9 +1,9 @@
 'use client';
 
-import type { Gender } from '@/types';
+import type { Interest } from '@/types';
 import { IcMars, IcVenus, IcGlobe } from './icons';
 
-export function GenderBadge({ gender }: { gender: Gender }) {
+export function GenderBadge({ gender }: { gender: Interest }) {
   if (gender === 'male')
     return (
       <span className='gender-badge gb-male'>
