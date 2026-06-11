@@ -4,8 +4,7 @@ import { RedisService, KafkaTopics, makeStranger } from '@app/shared';
 import type { Gender, Interest, QueueEntry, MatchFoundPayload } from '@app/shared';
 import { v4 as uuid } from 'uuid';
 
-const QUEUES: Record<Interest, string> = {
-  everyone: 'queue:everyone',
+const QUEUES: Record<Gender, string> = {
   male: 'queue:male',
   female: 'queue:female',
 };
@@ -40,8 +39,10 @@ export class MatchingService implements OnModuleInit {
       interest,
       joinedAt: Date.now(),
     };
-    await this.redis.lpush(QUEUES[interest], JSON.stringify(payload));
-    this.logger.log(`User ${userId} joined queue:${interest}`);
+    await this.redis.lpush(QUEUES[gender], JSON.stringify(payload));
+    this.logger.log(
+      `User ${userId} (${gender}, wants ${interest}) joined queue:${gender}`,
+    );
 
     const match = await this.tryMatch(payload);
     if (!match) {
@@ -80,6 +81,14 @@ export class MatchingService implements OnModuleInit {
         const candidate = JSON.parse(raw) as QueueEntry;
         if (candidate.userId === joiner.userId) continue;
 
+        // candidate's preference must also accept joiner's gender
+        if (
+          candidate.interest !== 'everyone' &&
+          candidate.interest !== joiner.gender
+        ) {
+          continue;
+        }
+
         // Atomically verify the candidate still exists before removing both users
         const candidateStillInQueue = await this.redis
           .lrange(qKey, 0, -1)
@@ -94,7 +103,7 @@ export class MatchingService implements OnModuleInit {
         }
 
         await this.redis.lrem(qKey, 1, raw);
-        await this.removeFromQueue(joiner.userId, joiner.interest);
+        await this.removeFromQueue(joiner.userId, joiner.gender);
 
         clearTimeout(this.timeouts.get(candidate.userId));
         this.timeouts.delete(candidate.userId);
@@ -111,24 +120,24 @@ export class MatchingService implements OnModuleInit {
 
   private getSearchQueues(interest: Interest): string[] {
     if (interest === 'everyone') {
-      return [QUEUES.everyone, QUEUES.male, QUEUES.female];
+      return [QUEUES.male, QUEUES.female];
     }
-    return [QUEUES[interest], QUEUES.everyone];
+    return [QUEUES[interest]];
   }
 
-  private async removeFromQueue(userId: string, interest: Interest): Promise<void> {
-    const entries = await this.redis.lrange(QUEUES[interest], 0, -1);
+  private async removeFromQueue(userId: string, gender: Gender): Promise<void> {
+    const entries = await this.redis.lrange(QUEUES[gender], 0, -1);
     for (const raw of entries) {
       const e = JSON.parse(raw) as QueueEntry;
       if (e.userId === userId) {
-        await this.redis.lrem(QUEUES[interest], 1, raw);
-        this.logger.debug(`Removed user ${userId} from queue:${interest}`);
+        await this.redis.lrem(QUEUES[gender], 1, raw);
+        this.logger.debug(`Removed user ${userId} from queue:${gender}`);
         return;
       }
     }
     // User not found in queue (may have already been removed by concurrent tryMatch)
     this.logger.debug(
-      `User ${userId} not found in queue:${interest} (already removed?)`,
+      `User ${userId} not found in queue:${gender} (already removed?)`,
     );
   }
 
