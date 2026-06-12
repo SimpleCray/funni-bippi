@@ -46,13 +46,6 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         <div className='modal-body'>
           <div className='set-group'>
             <div className='set-title'>
-              <IcUser size={16} /> My profile
-            </div>
-            <MyProfileFields />
-          </div>
-
-          <div className='set-group'>
-            <div className='set-title'>
               <IcSparkle size={16} /> Theme color
             </div>
             <div className='theme-grid'>
@@ -119,6 +112,12 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               </div>
               <Toggle on={showTyping} onClick={() => setShowTyping(!showTyping)} />
             </div>
+          </div>
+          <div className='set-group'>
+            <div className='set-title'>
+              <IcUser size={16} /> My profile
+            </div>
+            <MyProfileFields />
           </div>
         </div>
       </div>

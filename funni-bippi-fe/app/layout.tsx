@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import '@fontsource/poppins/400.css';
 import '@fontsource/poppins/500.css';
@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.svg',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
