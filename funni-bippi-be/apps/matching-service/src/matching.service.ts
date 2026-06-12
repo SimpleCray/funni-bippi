@@ -1,7 +1,12 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { RedisService, KafkaTopics, makeStranger } from '@app/shared';
-import type { Gender, Interest, QueueEntry, MatchFoundPayload } from '@app/shared';
+import type {
+  Gender,
+  Interest,
+  QueueEntry,
+  MatchFoundPayload,
+} from '@app/shared';
 import { v4 as uuid } from 'uuid';
 
 const QUEUES: Record<Gender, string> = {

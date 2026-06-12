@@ -352,7 +352,7 @@ SESSION_TTL_SECONDS=86400
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `user:join` | `{ gender, sessionId }` | Join matchmaking queue |
+| `user:join` | `{ gender, interest, sessionId }` | Join matchmaking queue — `gender` is the user's own gender (`'male' \| 'female'`), `interest` is who they want to match with (`'everyone' \| 'male' \| 'female'`) |
 | `user:cancel` | — | Leave matchmaking queue |
 | `chat:message` | `{ text, roomId }` | Send text message |
 | `chat:image` | `{ imageUrl, roomId }` | Send image message |
@@ -395,11 +395,10 @@ Defined in `libs/shared/src/events/kafka-events.ts`:
 
 | Key | Type | Value |
 |-----|------|-------|
-| `session:{sessionId}` | String (JSON) | `{ userId, socketId, gender, createdAt }` — TTL 24h |
+| `session:{sessionId}` | String (JSON) | `{ userId, socketId, interest, createdAt }` — TTL 24h |
 | `socket:{socketId}` | String | `sessionId` — reverse lookup |
-| `queue:everyone` | List | JSON `QueueEntry` objects |
-| `queue:male` | List | JSON `QueueEntry` objects |
-| `queue:female` | List | JSON `QueueEntry` objects |
+| `queue:male` | List | JSON `QueueEntry` objects (users whose own gender is male) |
+| `queue:female` | List | JSON `QueueEntry` objects (users whose own gender is female) |
 | `room:{roomId}` | Hash | `{ roomId, user1Id, user1SocketId, user2Id, user2SocketId, status, ... }` |
 | `userRoom:{userId}` | String | `roomId` — reverse lookup for disconnect |
 
@@ -434,7 +433,7 @@ docker logs funni-redis
 
 - Ensure **matching-service** is running (not just api-gateway)
 - Open a **second browser tab** — one user alone stays in the queue
-- Check matching-service logs for `User ... joined queue:everyone`
+- Check matching-service logs for `User ... (male/female, wants ...) joined queue:male/female`
 
 ### Messages not delivered
 

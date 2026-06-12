@@ -105,7 +105,7 @@ export class MatchingController {
   constructor(private readonly matchingService: MatchingService) {}
 
   @EventPattern(KafkaTopics.USER_JOIN_QUEUE)  // "when Kafka sends user.join-queue..."
-  async handleJoinQueue(@Payload() data: { userId, socketId, gender }) {
+  async handleJoinQueue(@Payload() data: { userId, socketId, gender, interest }) {
     await this.matchingService.joinQueue(data);  // "...call this service method"
   }
 }
@@ -124,7 +124,7 @@ export class MatchingService {
     @Inject('KAFKA_CLIENT') private readonly kafka: ClientKafka,  // also injected
   ) {}
 
-  async joinQueue(entry: { userId, socketId, gender }) {
+  async joinQueue(entry: { userId, socketId, gender, interest }) {
     // This is where the real work happens
     await this.redis.lpush(`queue:${entry.gender}`, JSON.stringify(entry));
     // ... try to match, set timeout, etc.
@@ -265,13 +265,14 @@ Redis is the **only shared state** between all three services. Since each servic
 
 | Key | Type | Value | Who reads/writes |
 |-----|------|-------|-----------------|
-| `session:{sessionId}` | String (JSON) | `{ userId, socketId, gender, createdAt }` | api-gateway (auth) |
+| `session:{sessionId}` | String (JSON) | `{ userId, socketId, interest, createdAt }` | api-gateway (auth) |
 | `socket:{socketId}` | String | `sessionId` | api-gateway (disconnect lookup) |
-| `queue:everyone` | List | JSON array of `QueueEntry` | matching-service |
 | `queue:male` | List | JSON array of `QueueEntry` | matching-service |
 | `queue:female` | List | JSON array of `QueueEntry` | matching-service |
 | `room:{roomId}` | Hash | `{ roomId, user1Id, user1SocketId, user2Id, user2SocketId, createdAt, status }` | chat-service |
 | `userRoom:{userId}` | String | `roomId` | chat-service |
+
+> There are only **two** queues now — `queue:male` and `queue:female` — keyed by the user's **own** gender (`Gender = 'male' | 'female'`). The user's `interest` (`'everyone' | 'male' | 'female'`) decides which queue(s) `tryMatch` searches, not which queue they're pushed into.
 
 ### QueueEntry shape
 
@@ -279,7 +280,8 @@ Redis is the **only shared state** between all three services. Since each servic
 interface QueueEntry {
   userId: string;
   socketId: string;
-  gender: 'everyone' | 'male' | 'female';
+  gender: 'male' | 'female';        // the user's own gender
+  interest: 'everyone' | 'male' | 'female';  // who they want to be matched with
   joinedAt: number;  // Unix timestamp
 }
 ```
@@ -374,7 +376,7 @@ async createSession(): Promise<{ sessionId: string; userId: string }> {
   const data: SessionData = {
     userId,
     socketId: null,       // no socket yet
-    gender: 'everyone',   // default
+    interest: 'everyone', // default match preference
     createdAt: Date.now(),
   };
 
@@ -388,7 +390,7 @@ async createSession(): Promise<{ sessionId: string; userId: string }> {
 ```
 [4] Redis now contains:
     KEY:   "session:a1b2c3d4-..."
-    VALUE: {"userId":"e5f6g7h8-...","socketId":null,"gender":"everyone","createdAt":1234567890}
+    VALUE: {"userId":"e5f6g7h8-...","socketId":null,"interest":"everyone","createdAt":1234567890}
     TTL:   86400 seconds (24 hours)
 ```
 
@@ -474,15 +476,15 @@ async handleConnection(client: TypedSocket) {
 
 ## 10. Flow 3 — Joining the Matchmaking Queue
 
-**User action:** FE emits `user:join` with a gender filter.
+**User action:** FE emits `user:join` with the user's own gender and who they're interested in.
 
-**What the FE does:** `socket.emit('user:join', { gender: 'everyone', sessionId: '...' })`
+**What the FE does:** `socket.emit('user:join', { gender: 'male', interest: 'everyone', sessionId: '...' })`
 
 ### Step-by-step
 
 ```
 [1] FE  →  WS event "user:join"
-           payload: { gender: "everyone", sessionId: "a1b2c3d4-..." }
+           payload: { gender: "male", interest: "everyone", sessionId: "a1b2c3d4-..." }
 ```
 
 ```
@@ -505,14 +507,17 @@ return true;
 **DTO validation** — `libs/shared/src/dto/join-queue.dto.ts`:
 ```typescript
 export class JoinQueueDto {
-  @IsIn(['everyone', 'male', 'female'])  // must be one of these three values
-  gender: 'everyone' | 'male' | 'female';
+  @IsIn(['male', 'female'])  // the user's own gender
+  gender: 'male' | 'female';
+
+  @IsIn(['everyone', 'male', 'female'])  // who they want to match with
+  interest: 'everyone' | 'male' | 'female';
 
   @IsString() @IsUUID()
   sessionId: string;
 }
 ```
-If `gender` were `"alien"`, NestJS would throw an error here and the request would be rejected before any business logic runs.
+If `gender` or `interest` had an invalid value, NestJS would throw an error here and the request would be rejected before any business logic runs.
 
 **Gateway handler** — `apps/api-gateway/src/gateway/chat.gateway.ts`:
 ```typescript
@@ -525,13 +530,14 @@ handleJoinQueue(@ConnectedSocket() client: TypedSocket, @MessageBody() dto: Join
     userId:   client.data.userId,   // from client.data set during connection
     socketId: client.id,
     gender:   dto.gender,
+    interest: dto.interest,
   });
 }
 ```
 
 ```
 [3] Kafka receives message on topic: "user.join-queue"
-    payload: { userId: "e5f6...", socketId: "ABC123", gender: "everyone" }
+    payload: { userId: "e5f6...", socketId: "ABC123", gender: "male", interest: "everyone" }
 ```
 
 ```
@@ -542,7 +548,7 @@ handleJoinQueue(@ConnectedSocket() client: TypedSocket, @MessageBody() dto: Join
 **File:** `apps/matching-service/src/matching.controller.ts`
 ```typescript
 @EventPattern(KafkaTopics.USER_JOIN_QUEUE)
-async handleJoinQueue(@Payload() data: { userId, socketId, gender }) {
+async handleJoinQueue(@Payload() data: { userId, socketId, gender, interest }) {
   await this.matchingService.joinQueue(data);
 }
 ```
@@ -553,18 +559,19 @@ async handleJoinQueue(@Payload() data: { userId, socketId, gender }) {
 
 **File:** `apps/matching-service/src/matching.service.ts`
 ```typescript
-async joinQueue(entry: { userId, socketId, gender }): Promise<void> {
+async joinQueue(entry: { userId, socketId, gender, interest }): Promise<void> {
+  const { userId, socketId, gender, interest } = entry;
   const payload: QueueEntry = {
-    userId:   entry.userId,
-    socketId: entry.socketId,
-    gender:   entry.gender,
+    userId,
+    socketId,
+    gender,
+    interest,
     joinedAt: Date.now(),
   };
 
-  // Push to the right Redis queue (left side of the list = most recent)
-  await this.redis.lpush(QUEUES[entry.gender], JSON.stringify(payload));
-  // QUEUES['everyone'] = 'queue:everyone'
-  // Redis list "queue:everyone" now has this user's entry
+  // Push to the queue matching the user's OWN gender (left side = most recent)
+  await this.redis.lpush(QUEUES[gender], JSON.stringify(payload));
+  // QUEUES = { male: 'queue:male', female: 'queue:female' }
 
   // Immediately try to find a match
   const match = await this.tryMatch(payload);
@@ -572,10 +579,10 @@ async joinQueue(entry: { userId, socketId, gender }): Promise<void> {
   if (!match) {
     // No one waiting — set a 30-second timeout
     const timer = setTimeout(
-      () => this.onTimeout(entry.userId, entry.socketId),
+      () => this.onTimeout(userId, socketId),
       30_000
     );
-    this.timeouts.set(entry.userId, timer);
+    this.timeouts.set(userId, timer);
     // FE shows the radar/searching animation
   }
   // If match was found, createMatch() ran inside tryMatch() — see Flow 4
@@ -583,8 +590,8 @@ async joinQueue(entry: { userId, socketId, gender }): Promise<void> {
 ```
 
 ```
-[6] Redis "queue:everyone" now contains (as a List):
-    [ '{"userId":"e5f6...","socketId":"ABC123","gender":"everyone","joinedAt":1234...}' ]
+[6] Redis "queue:male" now contains (as a List):
+    [ '{"userId":"e5f6...","socketId":"ABC123","gender":"male","interest":"everyone","joinedAt":1234...}' ]
 ```
 
 ```
@@ -604,17 +611,30 @@ This flow continues directly from Flow 3. It begins when `tryMatch()` finds anot
 
 ```typescript
 private async tryMatch(joiner: QueueEntry): Promise<boolean> {
-  // Determine which queues to search based on gender preference
-  const searchQueues = this.getSearchQueues(joiner.gender);
-  // 'everyone' → search [queue:everyone, queue:male, queue:female]
-  // 'male'     → search [queue:male, queue:everyone]
-  // 'female'   → search [queue:female, queue:everyone]
+  // Determine which queue(s) to search based on the joiner's INTEREST
+  const searchQueues = this.getSearchQueues(joiner.interest);
+  // interest 'everyone' → search [queue:male, queue:female]
+  // interest 'male'     → search [queue:male]
+  // interest 'female'   → search [queue:female]
 
   for (const qKey of searchQueues) {
     const entries = await this.redis.lrange(qKey, 0, -1);  // read full queue
     for (const raw of entries) {
       const candidate = JSON.parse(raw) as QueueEntry;
       if (candidate.userId === joiner.userId) continue;  // skip yourself
+
+      // The candidate's interest must also accept the joiner's gender
+      // (mutual match — both sides' preferences must be satisfied)
+      if (candidate.interest !== 'everyone' && candidate.interest !== joiner.gender) {
+        continue;
+      }
+
+      // Re-check the candidate is still in the queue (race guard — another
+      // tryMatch() running concurrently may have already grabbed them)
+      const candidateStillInQueue = await this.redis
+        .lrange(qKey, 0, -1)
+        .then((list) => list.some((entry) => entry === raw));
+      if (!candidateStillInQueue) continue;
 
       // Found a match candidate!
       // Remove candidate from their queue
@@ -628,11 +648,16 @@ private async tryMatch(joiner: QueueEntry): Promise<boolean> {
       this.timeouts.delete(candidate.userId);
       this.timeouts.delete(joiner.userId);
 
-      await this.createMatch(joiner, candidate);
+      this.createMatch(joiner, candidate);
       return true;
     }
   }
   return false;  // no match found yet
+}
+
+private getSearchQueues(interest: Interest): string[] {
+  if (interest === 'everyone') return [QUEUES.male, QUEUES.female];
+  return [QUEUES[interest]];
 }
 ```
 
@@ -647,11 +672,11 @@ private async tryMatch(joiner: QueueEntry): Promise<boolean> {
 private createMatch(user1: QueueEntry, user2: QueueEntry): void {
   const roomId = uuid();  // e.g. "room-xyz-789"
 
-  // Each user sees a randomly-generated "stranger" profile for their partner
-  // The profile is based on the PARTNER's gender
-  const strangerForUser1 = makeStranger(user2.gender);
-  // → { name: "FrostyQuokka", gender: "everyone", grad: ["#FF6B6B","#FF8E53"], glyph: "F" }
-  const strangerForUser2 = makeStranger(user1.gender);
+  // Each user sees a randomly-generated "stranger" profile for their partner.
+  // The profile carries the PARTNER's gender and interest.
+  const strangerForUser1 = makeStranger(user2.gender, user2.interest);
+  // → { name: "FrostyQuokka", gender: "female", interest: "everyone", grad: ["#FF6B6B","#FF8E53"], glyph: "F" }
+  const strangerForUser2 = makeStranger(user1.gender, user1.interest);
 
   const payload: MatchFoundPayload = {
     roomId,
@@ -1159,7 +1184,7 @@ handleNext(@ConnectedSocket() client, @MessageBody() dto: LeaveRoomDto) {
 ```
 [4] After cleanup, User A is now free (no room association)
     FE transitions back to the matching screen
-    FE emits: user:join { gender: "everyone", sessionId: "..." }
+    FE emits: user:join { gender: "male", interest: "everyone", sessionId: "..." }
     → Restarts from Flow 3
 ```
 
@@ -1381,7 +1406,7 @@ WebSocket guard that checks `client.handshake.auth.sessionId` exists. Applied to
 Wrapper around `ioredis`. Provides typed methods (`get`, `set`, `lpush`, `rpop`, `hset`, `hgetall`, etc.) used throughout the codebase.
 
 ### `libs/shared/src/utils/name-generator.ts`
-Generates random stranger profiles: picks a random adjective + animal combo and a gradient color pair. `makeStranger(gender)` returns a `StrangerProfile`.
+Generates random stranger profiles: picks a random adjective + animal combo and a gradient color pair. `makeStranger(gender, interest)` returns a `StrangerProfile`.
 
 ---
 
