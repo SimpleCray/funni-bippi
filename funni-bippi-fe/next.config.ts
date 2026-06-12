@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [new URL(`${BE}/files/**`)],
   },
+  allowedDevOrigins: ['*.ngrok-free.dev', '*.ngrok-free.app'],
 };
 
 export default nextConfig;

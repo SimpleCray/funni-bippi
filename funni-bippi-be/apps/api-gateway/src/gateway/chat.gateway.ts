@@ -27,6 +27,7 @@ import {
   ReportDto,
   KafkaTopics,
   GatewayBroadcastPayload,
+  buildCorsOriginValidator,
 } from '@app/shared';
 import { AuthService } from '../auth/auth.service';
 import { v4 as uuid } from 'uuid';
@@ -45,7 +46,7 @@ type TypedSocket = Socket<
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.FE_URL ?? 'http://localhost:3000',
+    origin: buildCorsOriginValidator(process.env.FE_URL),
     credentials: true,
   },
   transports: ['websocket'],

@@ -5,5 +5,6 @@ export * from './dto/send-message.dto';
 export * from './dto/upload-image.dto';
 export * from './guards/session.guard';
 export * from './utils/name-generator';
+export * from './utils/cors-origin';
 export * from './redis/redis.module';
 export * from './redis/redis.service';

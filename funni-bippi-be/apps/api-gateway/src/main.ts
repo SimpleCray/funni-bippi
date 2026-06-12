@@ -3,12 +3,13 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { RedisIoAdapter } from './redis-io.adapter';
+import { buildCorsOriginValidator } from '@app/shared';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: process.env.FE_URL ?? 'http://localhost:3000',
+    origin: buildCorsOriginValidator(process.env.FE_URL),
     credentials: true,
   });
 
