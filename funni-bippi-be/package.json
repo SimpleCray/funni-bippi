@@ -9,10 +9,9 @@
     "build": "nest build",
     "build:all": "nest build api-gateway && nest build matching-service && nest build chat-service",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/apps/funni-bippi-be/main",
+    "start": "nest start api-gateway",
+    "start:dev": "nest start api-gateway --watch",
+    "start:debug": "nest start api-gateway --debug --watch",
     "start:api": "nest start api-gateway --watch",
     "start:api:2": "cross-env PORT=3002 nest start api-gateway --watch",
     "start:api:3": "cross-env PORT=3003 nest start api-gateway --watch",
@@ -29,8 +28,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./apps/funni-bippi-be/test/jest-e2e.json"
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

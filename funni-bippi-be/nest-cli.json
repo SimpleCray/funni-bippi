@@ -1,14 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/funni-bippi-be/src",
+  "sourceRoot": "apps/api-gateway/src",
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "apps/funni-bippi-be/tsconfig.app.json"
+    "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
   },
   "monorepo": true,
-  "root": "apps/funni-bippi-be",
+  "root": "apps/api-gateway",
   "projects": {
     "api-gateway": {
       "type": "application",
@@ -26,15 +26,6 @@
       "sourceRoot": "apps/chat-service/src",
       "compilerOptions": {
         "tsConfigPath": "apps/chat-service/tsconfig.app.json"
-      }
-    },
-    "funni-bippi-be": {
-      "type": "application",
-      "root": "apps/funni-bippi-be",
-      "entryFile": "main",
-      "sourceRoot": "apps/funni-bippi-be/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/funni-bippi-be/tsconfig.app.json"
       }
     },
     "matching-service": {

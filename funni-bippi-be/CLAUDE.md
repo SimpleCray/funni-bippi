@@ -89,7 +89,7 @@ Local chat needs all 5 running (Redis, Kafka, 3 apps) + 2 browser tabs to match.
 
 ## Gotchas
 
-- `apps/funni-bippi-be/` = dead NestJS scaffold. Not bootstrapped. Don't put real code there.
+- `api-gateway` is the nest-cli default project — bare `nest start`/`nest build` (and `npm start`/`start:dev`/`build`) target it. matching/chat must be named explicitly.
 - Kafka topics auto-create with **1 partition** → extra matching/chat instances sit idle until partitions added (see README scaling).
 - Timeout timers (`this.timeouts` Map in matching) are per-process; on timeout the queue entry is NOT auto-removed — FE must `user:cancel`.
 - `chat:typing` and `chat:reaction` skip Kafka — handled locally in gateway, relayed via `client.to(roomId)`. Ephemeral, fire-and-forget, never hit chat-service/Redis. Keep that pattern for new ephemeral UI events.

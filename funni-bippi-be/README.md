@@ -100,8 +100,6 @@ funni-bippi-be/
 │   │       ├── chat.controller.ts     # Kafka: match.found, chat.message, ...
 │   │       └── chat.service.ts        # Room lifecycle, message relay
 │   │
-│   └── funni-bippi-be/           # Default NestJS scaffold (not used at runtime)
-│
 ├── libs/
 │   └── shared/                   # Shared across all apps (@app/shared)
 │       └── src/
@@ -120,7 +118,7 @@ funni-bippi-be/
 └── nest-cli.json
 ```
 
-> **Note:** Each app also has scaffold files (`*-service.module.ts`, etc.) from `nest generate app`. Only the real modules (`app.module.ts`, `matching.module.ts`, `chat.module.ts`) are bootstrapped in `main.ts`.
+> **Note:** `api-gateway` is the nest-cli default project, so bare `nest start` / `nest build` target it. The other two apps are started explicitly by name (`nest start matching-service`, etc.) — see [npm Scripts](#npm-scripts).
 
 ---
 
