@@ -357,6 +357,7 @@ SESSION_TTL_SECONDS=86400
 | `chat:message` | `{ text, roomId }` | Send text message |
 | `chat:image` | `{ imageUrl, roomId }` | Send image message |
 | `chat:typing` | `{ roomId, typing }` | Typing indicator |
+| `chat:reaction` | `{ roomId, messageId, emoji }` | React to a message — empty `emoji` clears the reaction (max 8 chars) |
 | `chat:next` | `{ roomId }` | Skip to next stranger |
 | `chat:report` | `{ roomId, reason? }` | Report and leave |
 
@@ -368,6 +369,7 @@ SESSION_TTL_SECONDS=86400
 | `chat:message` | `{ message }` | New message from stranger |
 | `chat:image` | `{ imageUrl, time }` | Image from stranger |
 | `chat:typing` | `{ typing }` | Stranger typing state |
+| `chat:reaction` | `{ messageId, emoji }` | Stranger reacted to a message — `emoji` is `null` to clear |
 | `chat:stranger_left` | — | Stranger disconnected |
 | `error:no_match` | `{ reason }` | No match found (30s timeout) |
 

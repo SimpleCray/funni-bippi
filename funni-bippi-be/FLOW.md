@@ -944,6 +944,40 @@ handleTyping(@ConnectedSocket() client, @MessageBody() dto: TypingDto) {
 
 No Redis, no Kafka. One line of code. Fast.
 
+### Reactions work the same way
+
+`chat:reaction` is also handled entirely in the gateway — no Kafka, no Redis. When a user reacts to a message, the gateway relays it straight to the other person in the room.
+
+**DTO** — `libs/shared/src/dto/send-message.dto.ts`:
+```typescript
+export class ReactionDto {
+  @IsString() @IsUUID()  messageId: string;  // which message is being reacted to
+  @IsString() @IsUUID()  roomId: string;
+  @IsString() @MaxLength(8)  emoji: string;  // the emoji, or "" to clear the reaction
+}
+```
+
+**Gateway handler** — `apps/api-gateway/src/gateway/chat.gateway.ts`:
+```typescript
+@SubscribeMessage('chat:reaction')
+handleReaction(@ConnectedSocket() client, @MessageBody() dto: ReactionDto) {
+  // everyone in the room EXCEPT the sender
+  client.to(dto.roomId).emit('chat:reaction', {
+    messageId: dto.messageId,
+    emoji: dto.emoji || null,   // empty string → null = remove the reaction
+  });
+}
+```
+
+```
+[1] FE emits: chat:reaction { roomId, messageId, emoji: "❤️" }
+[2] Gateway: client.to(roomId).emit("chat:reaction", { messageId, emoji: "❤️" })
+[3] Stranger's FE receives it → renders ❤️ on that message bubble
+[4] To clear: FE emits emoji: "" → partner receives emoji: null → reaction removed
+```
+
+Why fire-and-forget like typing? Reactions are ephemeral UI state — not persisted. If the partner disconnects, there's nothing to clean up. The chat-service never sees this event.
+
 ---
 
 ## 14. Flow 7 — Uploading and Sending an Image
@@ -1423,6 +1457,7 @@ socket.emit user:join   handleJoinQueue  user.join-queue      MatchingService   
 socket.emit chat:msg    handleMessage    chat.message         ChatService       message relayed to partner
 socket.emit chat:image  handleImage      chat.image           ChatService       image URL relayed to partner
 socket.emit chat:typing handleTyping     (none — local)       Gateway           typing state emitted directly
+socket.emit chat:reaction handleReaction (none — local)       Gateway           reaction emitted directly to partner
 socket.emit chat:next   handleNext       chat.user-left       ChatService       room ended, partner notified
 socket.emit user:cancel handleCancelQueue user.leave-queue    MatchingService   removed from queue
 tab close               handleDisconnect chat.user-left       ChatService       room ended, partner notified
