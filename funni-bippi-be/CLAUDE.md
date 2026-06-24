@@ -40,6 +40,11 @@ Import alias: `@app/shared` → `libs/shared/src` (see `tsconfig.json` paths). U
 
 ## Conventions
 
+- **No hardcoded magic strings.** Every shared identifier comes from a constant in `libs/shared`, never a literal:
+  - Socket event names → `SOCKET_EVENTS` (`libs/shared/src/events/socket-events.ts`). Use in `@SubscribeMessage(SOCKET_EVENTS.X)`, `.emit(SOCKET_EVENTS.X, ...)`, broadcast `event:` fields.
+  - Kafka topics → `KafkaTopics` (`events/kafka-events.ts`).
+  - DI tokens → `KAFKA_CLIENT` etc. (`constants/tokens.ts`). Use in `ClientsModule.register({ name: KAFKA_CLIENT })` AND `@Inject(KAFKA_CLIENT)`.
+  - Redis keys are templated per-service (e.g. `QUEUES` const in matching) — keep them defined once, don't re-inline.
 - **DI only.** Never `new SomeService()`. Declare in constructor, register in the owning module's `providers`/`imports`.
 - **Validate all inbound payloads** with a DTO + `ValidationPipe` (`whitelist: true`). WS handlers also need `@UseGuards(SessionGuard)`.
 - **strictNullChecks + noImplicitAny on.** No untyped `any`. Type socket data via `TypedSocket`.

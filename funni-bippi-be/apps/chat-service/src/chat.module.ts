@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { RedisModule } from '@app/shared';
+import { RedisModule, KAFKA_CLIENT } from '@app/shared';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 
@@ -11,7 +11,7 @@ import { ChatService } from './chat.service';
     RedisModule,
     ClientsModule.register([
       {
-        name: 'KAFKA_CLIENT',
+        name: KAFKA_CLIENT,
         transport: Transport.KAFKA,
         options: {
           client: {

@@ -35,8 +35,9 @@ Import alias: `@/*` → repo root (e.g. `@/lib/socket`, `@/store/chatStore`). Us
 ## Socket layer (single shared instance)
 
 - One client: `lib/socket.ts` — `autoConnect: false`, `transports: ['websocket']`. Import the default, don't `io()` again.
+- **No hardcoded event strings.** Always use `SOCKET_EVENTS` from `@/lib/socketEvents` — never a literal like `'chat:message'` in `socket.on`/`socket.emit`. That file MIRRORS BE `libs/shared/src/events/socket-events.ts`; change both together (the apps don't share code).
 - All inbound listeners registered in `hooks/useSocket.ts`; cleanup with `socket.removeAllListeners()`. Add new server→client events there, route into the store.
-- Outbound emits live in feature hooks (`useChat`, `useMatching`). Match BE event names exactly (`user:join`, `chat:message`, `chat:typing`, `chat:next`, `user:cancel`). See BE `chat.gateway.ts`.
+- Outbound emits live in feature hooks (`useChat`, `useMatching`). Event names from `SOCKET_EVENTS`, payloads must match BE `chat.gateway.ts`.
 - Optimistic UI: sender adds own message locally with a `uuid` id; BE excludes sender from broadcast. Keep `messageId` for dedup.
 
 ---

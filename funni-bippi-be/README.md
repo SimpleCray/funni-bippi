@@ -370,6 +370,7 @@ SESSION_TTL_SECONDS=86400
 | `chat:reaction` | `{ messageId, emoji }` | Stranger reacted to a message — `emoji` is `null` to clear |
 | `chat:stranger_left` | — | Stranger disconnected |
 | `error:no_match` | `{ reason }` | No match found (30s timeout) |
+| `error:server` | `{ event, message }` | A socket handler threw (guard/validation/handler error) — `event` = the failing event name |
 
 For full flow details on each event, see [FLOW.md](./FLOW.md).
 

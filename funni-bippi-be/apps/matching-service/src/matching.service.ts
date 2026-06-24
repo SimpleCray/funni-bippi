@@ -1,6 +1,12 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { RedisService, KafkaTopics, makeStranger } from '@app/shared';
+import {
+  RedisService,
+  KafkaTopics,
+  SOCKET_EVENTS,
+  KAFKA_CLIENT,
+  makeStranger,
+} from '@app/shared';
 import type {
   Gender,
   Interest,
@@ -23,7 +29,7 @@ export class MatchingService implements OnModuleInit {
 
   constructor(
     private readonly redis: RedisService,
-    @Inject('KAFKA_CLIENT') private readonly kafka: ClientKafka,
+    @Inject(KAFKA_CLIENT) private readonly kafka: ClientKafka,
   ) {}
 
   async onModuleInit() {
@@ -170,7 +176,7 @@ export class MatchingService implements OnModuleInit {
     this.kafka.emit(KafkaTopics.GATEWAY_BROADCAST, {
       type: 'emit-to-socket',
       socketIds: [socketId],
-      event: 'error:no_match',
+      event: SOCKET_EVENTS.ERROR_NO_MATCH,
       data: { reason: 'No match found. Try again!' },
     });
     this.logger.log(`Timeout for user ${userId}`);

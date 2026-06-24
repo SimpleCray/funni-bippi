@@ -1,22 +1,6 @@
 import type { AccentColor, Gender, Interest } from '@/types';
 
-export const SOCKET_EVENTS = {
-  // Client → Server
-  USER_JOIN: 'user:join',
-  USER_CANCEL: 'user:cancel',
-  CHAT_MESSAGE: 'chat:message',
-  CHAT_IMAGE: 'chat:image',
-  CHAT_TYPING: 'chat:typing',
-  CHAT_NEXT: 'chat:next',
-  CHAT_REPORT: 'chat:report',
-  // Server → Client
-  MATCH_FOUND: 'match:found',
-  CHAT_MESSAGE_IN: 'chat:message',
-  CHAT_IMAGE_IN: 'chat:image',
-  CHAT_TYPING_IN: 'chat:typing',
-  CHAT_STRANGER_LEFT: 'chat:stranger_left',
-  ERROR_NO_MATCH: 'error:no_match',
-} as const;
+// Socket event names live in `@/lib/socketEvents` (SOCKET_EVENTS) — single source of truth.
 
 export const ACCENT_COLORS: { id: AccentColor; grad: string; hex: string }[] = [
   { id: 'coral', grad: 'linear-gradient(135deg, #FF8E6B, #FF5E72)', hex: '#FF6B5E' },

@@ -6,6 +6,7 @@ import socket from '@/lib/socket';
 import { useChatStore } from '@/store/chatStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { fetchSession } from '@/lib/api';
+import { SOCKET_EVENTS } from '@/lib/socketEvents';
 
 export function useMatching() {
   const { data: session, isError } = useQuery({
@@ -34,15 +35,15 @@ export function useMatching() {
     const { myGender, myInterest } = useSettingsStore.getState();
     if (!sessionId) return;
     connect(sessionId);
-    socket.emit('user:join', { gender: myGender, interest: myInterest, sessionId });
+    socket.emit(SOCKET_EVENTS.USER_JOIN, { gender: myGender, interest: myInterest, sessionId });
   }, [connect]);
 
   const cancelMatch = useCallback(() => {
-    socket.emit('user:cancel');
+    socket.emit(SOCKET_EVENTS.USER_CANCEL);
   }, []);
 
   const disconnect = useCallback(() => {
-    socket.emit('user:cancel');
+    socket.emit(SOCKET_EVENTS.USER_CANCEL);
     socket.disconnect();
   }, []);
 

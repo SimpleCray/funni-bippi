@@ -1,6 +1,11 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { RedisService, KafkaTopics } from '@app/shared';
+import {
+  RedisService,
+  KafkaTopics,
+  SOCKET_EVENTS,
+  KAFKA_CLIENT,
+} from '@app/shared';
 import type {
   MatchFoundPayload,
   MessagePayload,
@@ -14,7 +19,7 @@ export class ChatService implements OnModuleInit {
 
   constructor(
     private readonly redis: RedisService,
-    @Inject('KAFKA_CLIENT') private readonly kafka: ClientKafka,
+    @Inject(KAFKA_CLIENT) private readonly kafka: ClientKafka,
   ) {}
 
   async onModuleInit() {
@@ -50,13 +55,13 @@ export class ChatService implements OnModuleInit {
     this.broadcast({
       type: 'emit-to-socket',
       socketIds: [user1.socketId],
-      event: 'match:found',
+      event: SOCKET_EVENTS.MATCH_FOUND,
       data: { roomId, stranger: strangerForUser1 },
     });
     this.broadcast({
       type: 'emit-to-socket',
       socketIds: [user2.socketId],
-      event: 'match:found',
+      event: SOCKET_EVENTS.MATCH_FOUND,
       data: { roomId, stranger: strangerForUser2 },
     });
 
@@ -73,7 +78,7 @@ export class ChatService implements OnModuleInit {
       excludeSocketIds: payload.fromSocketId
         ? [payload.fromSocketId]
         : undefined,
-      event: 'chat:message',
+      event: SOCKET_EVENTS.CHAT_MESSAGE,
       data: {
         message: {
           id: payload.messageId,
@@ -98,7 +103,7 @@ export class ChatService implements OnModuleInit {
       excludeSocketIds: payload.fromSocketId
         ? [payload.fromSocketId]
         : undefined,
-      event: 'chat:image',
+      event: SOCKET_EVENTS.CHAT_IMAGE,
       data: {
         messageId: payload.messageId,
         imageUrl: payload.imageUrl,
@@ -137,7 +142,7 @@ export class ChatService implements OnModuleInit {
       this.broadcast({
         type: 'emit-to-socket',
         socketIds: [partnerSocketId],
-        event: 'chat:stranger_left',
+        event: SOCKET_EVENTS.CHAT_STRANGER_LEFT,
         data: {},
       });
     }

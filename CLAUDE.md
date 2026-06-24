@@ -17,6 +17,7 @@ Before ANY code task, open the matching subdir's `CLAUDE.md` and follow it. BE w
 
 The two talk over HTTP + Socket.IO. Shared shapes are duplicated, not imported — change both sides together:
 
+- **No hardcoded event strings anywhere.** Socket event names live in a constant on each side and are mirrored: BE `libs/shared/src/events/socket-events.ts` (`SOCKET_EVENTS`) ↔ FE `lib/socketEvents.ts` (`SOCKET_EVENTS`). Adding/renaming an event = edit BOTH files. BE also centralizes Kafka topics (`KafkaTopics`) + DI tokens (`KAFKA_CLIENT`).
 - Socket events + payloads: BE `chat.gateway.ts` ↔ FE `hooks/useSocket.ts` / `useChat.ts` / `useMatching.ts`.
 - REST: `POST /session/init`, `POST /upload` (Authorization: sessionId), `GET /files/:name`, `GET /health`.
 - Types like `Gender`, `Interest`, `Stranger`, `Message` exist on BOTH sides (`libs/shared/src/types` vs FE `types/index.ts`). Edit in tandem.

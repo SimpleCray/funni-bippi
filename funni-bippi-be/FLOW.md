@@ -172,6 +172,16 @@ export class SessionGuard implements CanActivate {
 
 The `@UseGuards(SessionGuard)` decorator on a handler means the guard runs first.
 
+> **What happens when a guard (or validation) throws?** A global WS exception filter — `libs/shared/src/filters/ws-exception.filter.ts`, applied via `@UseFilters(new WsExceptionFilter())` on `ChatGateway` — catches every throw from a socket guard, `ValidationPipe`, or handler body. Instead of leaking Nest's raw `exception` event, it emits a single predictable event back to that client:
+>
+> ```
+> error:server  { event, message }
+>   event:   the socket event that failed (e.g. "user:join"), or "unknown"
+>   message: the WsException reason or validation message
+> ```
+>
+> The FE listens for `error:server` in `hooks/useSocket.ts` and shows a toast. The error is also logged server-side (warn + stack). Note: this is gateway-scoped on purpose — registering it as a truly global filter would also wrongly catch HTTP exceptions.
+
 ### 3.6 Dependency Injection (DI)
 
 NestJS manages object creation. You declare what you need in the constructor, and NestJS provides it automatically. You never call `new SomeService()` manually.

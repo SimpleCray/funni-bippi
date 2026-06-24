@@ -10,6 +10,7 @@ import {
 import {
   Inject,
   Logger,
+  UseFilters,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -26,8 +27,11 @@ import {
   LeaveRoomDto,
   ReportDto,
   KafkaTopics,
+  SOCKET_EVENTS,
+  KAFKA_CLIENT,
   GatewayBroadcastPayload,
   buildCorsOriginValidator,
+  WsExceptionFilter,
 } from '@app/shared';
 import { AuthService } from '../auth/auth.service';
 import { v4 as uuid } from 'uuid';
@@ -51,12 +55,13 @@ type TypedSocket = Socket<
   },
   transports: ['websocket'],
 })
+@UseFilters(new WsExceptionFilter())
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server!: Server;
   private readonly logger = new Logger(ChatGateway.name);
 
   constructor(
-    @Inject('KAFKA_CLIENT') private readonly kafka: ClientKafka,
+    @Inject(KAFKA_CLIENT) private readonly kafka: ClientKafka,
     private readonly authService: AuthService,
   ) {}
 
@@ -94,7 +99,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(SessionGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @SubscribeMessage('user:join')
+  @SubscribeMessage(SOCKET_EVENTS.USER_JOIN)
   handleJoinQueue(
     @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: JoinQueueDto,
@@ -108,7 +113,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SessionGuard)
-  @SubscribeMessage('user:cancel')
+  @SubscribeMessage(SOCKET_EVENTS.USER_CANCEL)
   handleCancelQueue(@ConnectedSocket() client: TypedSocket) {
     this.kafka.emit(KafkaTopics.USER_LEAVE_QUEUE, {
       userId: client.data.userId,
@@ -118,7 +123,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(SessionGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @SubscribeMessage('chat:message')
+  @SubscribeMessage(SOCKET_EVENTS.CHAT_MESSAGE)
   handleMessage(
     @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: SendMessageDto,
@@ -135,7 +140,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(SessionGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @SubscribeMessage('chat:image')
+  @SubscribeMessage(SOCKET_EVENTS.CHAT_IMAGE)
   handleImage(
     @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: SendImageDto,
@@ -152,22 +157,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(SessionGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @SubscribeMessage('chat:typing')
+  @SubscribeMessage(SOCKET_EVENTS.CHAT_TYPING)
   handleTyping(
     @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: TypingDto,
   ) {
-    client.to(dto.roomId).emit('chat:typing', { typing: dto.typing ?? true });
+    client
+      .to(dto.roomId)
+      .emit(SOCKET_EVENTS.CHAT_TYPING, { typing: dto.typing ?? true });
   }
 
   @UseGuards(SessionGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @SubscribeMessage('chat:reaction')
+  @SubscribeMessage(SOCKET_EVENTS.CHAT_REACTION)
   handleReaction(
     @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: ReactionDto,
   ) {
-    client.to(dto.roomId).emit('chat:reaction', {
+    client.to(dto.roomId).emit(SOCKET_EVENTS.CHAT_REACTION, {
       messageId: dto.messageId,
       emoji: dto.emoji || null,
     });
@@ -175,7 +182,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(SessionGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @SubscribeMessage('chat:next')
+  @SubscribeMessage(SOCKET_EVENTS.CHAT_NEXT)
   handleNext(
     @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: LeaveRoomDto,
@@ -190,7 +197,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(SessionGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  @SubscribeMessage('chat:report')
+  @SubscribeMessage(SOCKET_EVENTS.CHAT_REPORT)
   handleReport(
     @ConnectedSocket() client: TypedSocket,
     @MessageBody() dto: ReportDto,
