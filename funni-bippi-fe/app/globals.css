@@ -683,7 +683,7 @@ textarea {
 /* reaction bar on hover */
 .react-bar {
   position: absolute;
-  top: -16px;
+  top: calc(100% - 16px);
   display: flex;
   gap: 2px;
   padding: 4px;
@@ -692,7 +692,7 @@ textarea {
   border-radius: 99px;
   box-shadow: var(--shadow-m);
   opacity: 0;
-  transform: translateY(4px) scale(0.9);
+  transform: translateY(-4px) scale(0.9);
   pointer-events: none;
   transition:
     opacity 0.16s,
