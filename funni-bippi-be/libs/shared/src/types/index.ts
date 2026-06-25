@@ -1,3 +1,5 @@
+import type { BroadcastType } from '../constants/broadcast-types';
+
 export type Gender = 'male' | 'female';
 
 export type Interest = 'everyone' | 'male' | 'female';
@@ -54,7 +56,7 @@ export interface MatchFoundPayload {
 }
 
 export interface GatewayBroadcastPayload {
-  type: 'join-room' | 'emit-to-socket' | 'emit-to-room';
+  type: BroadcastType;
   roomId?: string;
   socketIds?: string[];
   excludeSocketIds?: string[];

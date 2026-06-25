@@ -1,6 +1,7 @@
 export * from './events/kafka-events';
 export * from './events/socket-events';
 export * from './constants/tokens';
+export * from './constants/broadcast-types';
 export * from './types';
 export * from './dto/join-queue.dto';
 export * from './dto/send-message.dto';

@@ -197,6 +197,68 @@ const myService = new MyService(redis);
 
 This is why services and modules need to be registered — it's how NestJS knows what to create and inject.
 
+### 3.7 Decorator Reference Table
+
+Every decorator actually used in this backend, what it does, and where to see it. The last group (`class-validator`) is not part of NestJS itself — it ships separately and is applied on DTO fields, which NestJS's `ValidationPipe` enforces automatically.
+
+#### Module & DI (wiring)
+
+| Decorator | Package | What it does | Example location |
+|-----------|---------|--------------|------------------|
+| `@Module()` | `@nestjs/common` | Declares a module: its `imports`, `providers`, `controllers`, `exports` | `apps/api-gateway/src/app.module.ts` |
+| `@Global()` | `@nestjs/common` | Marks a module global so its exports inject anywhere without re-importing | `libs/shared/src/redis/redis.module.ts` |
+| `@Injectable()` | `@nestjs/common` | Marks a class as a provider that DI can construct and inject | `*.service.ts`, `session.guard.ts` |
+| `@Inject(TOKEN)` | `@nestjs/common` | Injects a provider by DI token (used for `KAFKA_CLIENT`) | `chat.gateway.ts`, `matching.service.ts` |
+
+#### HTTP controllers (api-gateway only)
+
+| Decorator | Package | What it does | Example location |
+|-----------|---------|--------------|------------------|
+| `@Controller()` | `@nestjs/common` | Marks a class as a request/event handler (HTTP routes or Kafka patterns) | `auth.controller.ts` |
+| `@Get()` | `@nestjs/common` | Maps an HTTP GET route to a method | `auth.controller.ts` (`/health`) |
+| `@Post()` | `@nestjs/common` | Maps an HTTP POST route to a method | `auth.controller.ts` (`/session/init`), `upload.controller.ts` (`/upload`) |
+| `@UseInterceptors()` | `@nestjs/common` | Attaches an interceptor — here Multer's `FileInterceptor` for upload parsing | `upload.controller.ts` |
+| `@UploadedFile()` | `@nestjs/common` | Extracts the parsed file from a multipart request | `upload.controller.ts` |
+
+#### Kafka microservice (all 3 services)
+
+| Decorator | Package | What it does | Example location |
+|-----------|---------|--------------|------------------|
+| `@EventPattern(topic)` | `@nestjs/microservices` | Subscribes a method to a Kafka topic (fire-and-forget consumer) | `matching.controller.ts`, `chat.controller.ts`, `gateway-broadcast.controller.ts` |
+| `@Payload()` | `@nestjs/microservices` | Extracts the message body from an incoming Kafka event | same files as above |
+
+#### WebSocket gateway (api-gateway only)
+
+| Decorator | Package | What it does | Example location |
+|-----------|---------|--------------|------------------|
+| `@WebSocketGateway()` | `@nestjs/websockets` | Turns a class into a Socket.IO server (with CORS / transport opts) | `chat.gateway.ts` |
+| `@WebSocketServer()` | `@nestjs/websockets` | Injects the raw Socket.IO `Server` instance | `chat.gateway.ts` |
+| `@SubscribeMessage(event)` | `@nestjs/websockets` | Handles an inbound socket event (`user:join`, `chat:message`, …) | `chat.gateway.ts` |
+| `@ConnectedSocket()` | `@nestjs/websockets` | Injects the connected client socket into the handler | `chat.gateway.ts` |
+| `@MessageBody()` | `@nestjs/websockets` | Extracts the event payload (validated against a DTO) | `chat.gateway.ts` |
+
+#### Guards, pipes, filters (cross-cutting)
+
+| Decorator | Package | What it does | Example location |
+|-----------|---------|--------------|------------------|
+| `@UseGuards(SessionGuard)` | `@nestjs/common` | Runs a guard before the handler — here the sessionId check | `chat.gateway.ts` |
+| `@UsePipes(ValidationPipe)` | `@nestjs/common` | Validates/transforms the payload before the handler runs | `chat.gateway.ts` |
+| `@UseFilters(WsExceptionFilter)` | `@nestjs/common` | Catches thrown exceptions and emits `error:server` to the client | `chat.gateway.ts` |
+| `@Catch()` | `@nestjs/common` | Declares which exception types a filter class handles | `ws-exception.filter.ts` |
+
+#### DTO validation (`class-validator`, enforced by `ValidationPipe`)
+
+| Decorator | What it validates | Example location |
+|-----------|-------------------|------------------|
+| `@IsString()` | Value is a string | all DTOs |
+| `@IsUUID()` | Value is a valid UUID (roomId, sessionId, messageId) | `join-queue.dto.ts`, `send-message.dto.ts` |
+| `@IsIn([...])` | Value is one of an allowed set (`gender`, `interest`) | `join-queue.dto.ts` |
+| `@MaxLength(n)` | String length ≤ n (message text, emoji) | `send-message.dto.ts` |
+| `@Matches(regex)` | String matches a regex pattern | `send-message.dto.ts` |
+| `@IsOptional()` | Skips validation when the field is absent | `send-message.dto.ts` |
+
+> Note `@IsUrl()` appears in this doc's image-upload example but the live DTO (`upload-image.dto.ts`) uses `@IsString()` + `@IsUUID()`. Treat the table as the source of truth for what's actually wired.
+
 ---
 
 ## 4. How Services Talk to Each Other

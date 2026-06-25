@@ -30,6 +30,7 @@ import {
   SOCKET_EVENTS,
   KAFKA_CLIENT,
   GatewayBroadcastPayload,
+  BROADCAST_TYPES,
   buildCorsOriginValidator,
   WsExceptionFilter,
 } from '@app/shared';
@@ -211,13 +212,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleBroadcast(payload: GatewayBroadcastPayload) {
-    if (payload.type === 'join-room' && payload.socketIds && payload.roomId) {
+    if (
+      payload.type === BROADCAST_TYPES.JOIN_ROOM &&
+      payload.socketIds &&
+      payload.roomId
+    ) {
       for (const sid of payload.socketIds) {
         const sock = this.server.sockets.sockets.get(sid);
         if (sock) void sock.join(payload.roomId);
       }
     } else if (
-      payload.type === 'emit-to-socket' &&
+      payload.type === BROADCAST_TYPES.EMIT_TO_SOCKET &&
       payload.socketIds &&
       payload.event
     ) {
@@ -225,7 +230,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.server.to(sid).emit(payload.event, payload.data);
       }
     } else if (
-      payload.type === 'emit-to-room' &&
+      payload.type === BROADCAST_TYPES.EMIT_TO_ROOM &&
       payload.roomId &&
       payload.event
     ) {

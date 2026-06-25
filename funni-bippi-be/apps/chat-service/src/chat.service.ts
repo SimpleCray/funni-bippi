@@ -5,6 +5,7 @@ import {
   KafkaTopics,
   SOCKET_EVENTS,
   KAFKA_CLIENT,
+  BROADCAST_TYPES,
 } from '@app/shared';
 import type {
   MatchFoundPayload,
@@ -47,19 +48,19 @@ export class ChatService implements OnModuleInit {
     await this.redis.set(`userRoom:${user2.userId}`, roomId);
 
     this.broadcast({
-      type: 'join-room',
+      type: BROADCAST_TYPES.JOIN_ROOM,
       socketIds: [user1.socketId, user2.socketId],
       roomId,
     });
 
     this.broadcast({
-      type: 'emit-to-socket',
+      type: BROADCAST_TYPES.EMIT_TO_SOCKET,
       socketIds: [user1.socketId],
       event: SOCKET_EVENTS.MATCH_FOUND,
       data: { roomId, stranger: strangerForUser1 },
     });
     this.broadcast({
-      type: 'emit-to-socket',
+      type: BROADCAST_TYPES.EMIT_TO_SOCKET,
       socketIds: [user2.socketId],
       event: SOCKET_EVENTS.MATCH_FOUND,
       data: { roomId, stranger: strangerForUser2 },
@@ -73,7 +74,7 @@ export class ChatService implements OnModuleInit {
     if (!room || room.status !== 'active') return;
 
     this.broadcast({
-      type: 'emit-to-room',
+      type: BROADCAST_TYPES.EMIT_TO_ROOM,
       roomId: payload.roomId,
       excludeSocketIds: payload.fromSocketId
         ? [payload.fromSocketId]
@@ -98,7 +99,7 @@ export class ChatService implements OnModuleInit {
     if (!room || room.status !== 'active') return;
 
     this.broadcast({
-      type: 'emit-to-room',
+      type: BROADCAST_TYPES.EMIT_TO_ROOM,
       roomId: payload.roomId,
       excludeSocketIds: payload.fromSocketId
         ? [payload.fromSocketId]
@@ -140,7 +141,7 @@ export class ChatService implements OnModuleInit {
 
     if (partnerSocketId) {
       this.broadcast({
-        type: 'emit-to-socket',
+        type: BROADCAST_TYPES.EMIT_TO_SOCKET,
         socketIds: [partnerSocketId],
         event: SOCKET_EVENTS.CHAT_STRANGER_LEFT,
         data: {},

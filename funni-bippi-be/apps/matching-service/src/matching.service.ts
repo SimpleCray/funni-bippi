@@ -5,6 +5,7 @@ import {
   KafkaTopics,
   SOCKET_EVENTS,
   KAFKA_CLIENT,
+  BROADCAST_TYPES,
   makeStranger,
 } from '@app/shared';
 import type {
@@ -174,7 +175,7 @@ export class MatchingService implements OnModuleInit {
   private onTimeout(userId: string, socketId: string): void {
     this.timeouts.delete(userId);
     this.kafka.emit(KafkaTopics.GATEWAY_BROADCAST, {
-      type: 'emit-to-socket',
+      type: BROADCAST_TYPES.EMIT_TO_SOCKET,
       socketIds: [socketId],
       event: SOCKET_EVENTS.ERROR_NO_MATCH,
       data: { reason: 'No match found. Try again!' },
