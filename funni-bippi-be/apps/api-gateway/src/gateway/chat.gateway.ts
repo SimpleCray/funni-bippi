@@ -57,6 +57,8 @@ type TypedSocket = Socket<
   transports: ['websocket'],
 })
 @UseFilters(new WsExceptionFilter())
+@UseGuards(SessionGuard)
+@UsePipes(new ValidationPipe({ whitelist: true }))
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server!: Server;
   private readonly logger = new Logger(ChatGateway.name);
@@ -98,8 +100,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  @UseGuards(SessionGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage(SOCKET_EVENTS.USER_JOIN)
   handleJoinQueue(
     @ConnectedSocket() client: TypedSocket,
@@ -113,7 +113,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  @UseGuards(SessionGuard)
   @SubscribeMessage(SOCKET_EVENTS.USER_CANCEL)
   handleCancelQueue(@ConnectedSocket() client: TypedSocket) {
     this.kafka.emit(KafkaTopics.USER_LEAVE_QUEUE, {
@@ -122,8 +121,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  @UseGuards(SessionGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage(SOCKET_EVENTS.CHAT_MESSAGE)
   handleMessage(
     @ConnectedSocket() client: TypedSocket,
@@ -139,8 +136,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  @UseGuards(SessionGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage(SOCKET_EVENTS.CHAT_IMAGE)
   handleImage(
     @ConnectedSocket() client: TypedSocket,
@@ -156,8 +151,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  @UseGuards(SessionGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage(SOCKET_EVENTS.CHAT_TYPING)
   handleTyping(
     @ConnectedSocket() client: TypedSocket,
@@ -168,8 +161,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .emit(SOCKET_EVENTS.CHAT_TYPING, { typing: dto.typing ?? true });
   }
 
-  @UseGuards(SessionGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage(SOCKET_EVENTS.CHAT_REACTION)
   handleReaction(
     @ConnectedSocket() client: TypedSocket,
@@ -181,8 +172,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  @UseGuards(SessionGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage(SOCKET_EVENTS.CHAT_NEXT)
   handleNext(
     @ConnectedSocket() client: TypedSocket,
@@ -196,8 +185,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  @UseGuards(SessionGuard)
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   @SubscribeMessage(SOCKET_EVENTS.CHAT_REPORT)
   handleReport(
     @ConnectedSocket() client: TypedSocket,
