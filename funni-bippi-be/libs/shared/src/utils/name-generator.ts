@@ -67,7 +67,10 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function makeStranger(gender: Gender, interest: Interest): StrangerProfile {
+export function makeStranger(
+  gender: Gender,
+  interest: Interest,
+): StrangerProfile {
   const adj = pick(ADJECTIVES);
   const animal = pick(ANIMALS);
   const name = `${adj}${animal}`;
